@@ -1,0 +1,2 @@
+# Backend version verified by container tests; uses the configured pip index.
+py7zr==1.1.3

@@ -1,0 +1,194 @@
+{
+  "schema": 1,
+  "evidence_level": "local_disk_no_vdi",
+  "python": "3.12.10",
+  "os": "Windows",
+  "profiles": {
+    "strong": {
+      "preset": 6,
+      "dictionary_bytes": 16777216
+    },
+    "max": {
+      "preset": 9,
+      "dictionary_bytes": 33554432
+    },
+    "ultra": {
+      "preset": 2147483657,
+      "dictionary_bytes": 67108864
+    }
+  },
+  "package_versions": {
+    "py7zr": "1.1.3",
+    "pycryptodomex": "3.23.0",
+    "psutil": "7.2.2",
+    "backports.zstd": "1.7.0",
+    "brotli": "1.2.0",
+    "inflate64": "1.0.4",
+    "multivolumefile": "0.2.3",
+    "pybcj": "1.0.8",
+    "pyppmd": "1.3.1",
+    "texttable": "1.7.0"
+  },
+  "results": [
+    {
+      "profile": "strong",
+      "object_bytes": 13451,
+      "prepare_seconds": 0.6484463000015239,
+      "manifest_verified": true,
+      "case": "text.txt",
+      "source_bytes": 2400000,
+      "peak_rss_bytes": 95907840
+    },
+    {
+      "profile": "max",
+      "object_bytes": 13451,
+      "prepare_seconds": 0.6701214999993681,
+      "manifest_verified": true,
+      "case": "text.txt",
+      "source_bytes": 2400000,
+      "peak_rss_bytes": 129769472
+    },
+    {
+      "profile": "ultra",
+      "object_bytes": 13451,
+      "prepare_seconds": 0.7371381999982987,
+      "manifest_verified": true,
+      "case": "text.txt",
+      "source_bytes": 2400000,
+      "peak_rss_bytes": 129814528
+    },
+    {
+      "profile": "strong",
+      "object_bytes": 2098397,
+      "prepare_seconds": 0.7387062999987393,
+      "manifest_verified": true,
+      "case": "compressed.zlib",
+      "source_bytes": 2097798,
+      "peak_rss_bytes": 95358976
+    },
+    {
+      "profile": "max",
+      "object_bytes": 2098397,
+      "prepare_seconds": 0.7814881000012974,
+      "manifest_verified": true,
+      "case": "compressed.zlib",
+      "source_bytes": 2097798,
+      "peak_rss_bytes": 128540672
+    },
+    {
+      "profile": "ultra",
+      "object_bytes": 2098397,
+      "prepare_seconds": 0.7597024999995483,
+      "manifest_verified": true,
+      "case": "compressed.zlib",
+      "source_bytes": 2097798,
+      "peak_rss_bytes": 128249856
+    },
+    {
+      "profile": "strong",
+      "object_bytes": 273948,
+      "prepare_seconds": 0.6377389999979641,
+      "manifest_verified": true,
+      "case": "tree",
+      "source_bytes": 1862144,
+      "peak_rss_bytes": 91398144
+    },
+    {
+      "profile": "max",
+      "object_bytes": 273948,
+      "prepare_seconds": 0.6342703999980586,
+      "manifest_verified": true,
+      "case": "tree",
+      "source_bytes": 1862144,
+      "peak_rss_bytes": 124723200
+    },
+    {
+      "profile": "ultra",
+      "object_bytes": 273948,
+      "prepare_seconds": 0.6558006999985082,
+      "manifest_verified": true,
+      "case": "tree",
+      "source_bytes": 1862144,
+      "peak_rss_bytes": 124891136
+    },
+    {
+      "profile": "strong",
+      "object_bytes": 20492,
+      "prepare_seconds": 11.659251299999596,
+      "manifest_verified": true,
+      "case": "large-text.txt",
+      "source_bytes": 50331648,
+      "peak_rss_bytes": 236314624
+    },
+    {
+      "profile": "max",
+      "object_bytes": 20492,
+      "prepare_seconds": 11.887929700002132,
+      "manifest_verified": true,
+      "case": "large-text.txt",
+      "source_bytes": 50331648,
+      "peak_rss_bytes": 428457984
+    },
+    {
+      "profile": "ultra",
+      "object_bytes": 20508,
+      "prepare_seconds": 127.39136580000195,
+      "manifest_verified": true,
+      "case": "large-text.txt",
+      "source_bytes": 50331648,
+      "peak_rss_bytes": 562884608
+    }
+  ],
+  "memory_note": "10 ms sampled sum RSS, entire child process tree, includes extract; shared pages may be counted twice",
+  "comparison_extreme32": {
+    "preset": 2147483657,
+    "dictionary_bytes": 33554432,
+    "results": [
+      {
+        "profile": "max",
+        "object_bytes": 13451,
+        "prepare_seconds": 0.6701214999993681,
+        "manifest_verified": true,
+        "case": "text.txt",
+        "source_bytes": 2400000,
+        "peak_rss_bytes": 129769472
+      },
+      {
+        "profile": "max",
+        "object_bytes": 2098397,
+        "prepare_seconds": 0.7814881000012974,
+        "manifest_verified": true,
+        "case": "compressed.zlib",
+        "source_bytes": 2097798,
+        "peak_rss_bytes": 128540672
+      },
+      {
+        "profile": "max",
+        "object_bytes": 273948,
+        "prepare_seconds": 0.6342703999980586,
+        "manifest_verified": true,
+        "case": "tree",
+        "source_bytes": 1862144,
+        "peak_rss_bytes": 124723200
+      },
+      {
+        "profile": "max",
+        "object_bytes": 20492,
+        "prepare_seconds": 11.887929700002132,
+        "manifest_verified": true,
+        "case": "large-text.txt",
+        "source_bytes": 50331648,
+        "peak_rss_bytes": 428457984
+      }
+    ]
+  },
+  "notes": [
+    "Single local runs, not VDI throughput; some runs overlapped correctness tests.",
+    "max final uses preset 9 without EXTREME after comparison; separate max-final.json recorded its measurements.",
+    "Public PyPI Linux cp310 manylinux wheels downloaded; internal mirror and Linux runtime not tested."
+  ],
+  "test_results": {
+    "Windows Python 3.12.10": 52,
+    "Windows Python 3.10.21": 52
+  }
+}

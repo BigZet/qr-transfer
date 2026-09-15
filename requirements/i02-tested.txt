@@ -1,0 +1,11 @@
+# Observed Windows Python 3.10/3.12 versions; not proof of internal mirror availability.
+py7zr==1.1.3
+pycryptodomex==3.23.0
+psutil==7.2.2
+backports.zstd==1.7.0
+brotli==1.2.0
+inflate64==1.0.4
+multivolumefile==0.2.3
+pybcj==1.0.8
+pyppmd==1.3.1
+texttable==1.7.0

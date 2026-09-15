@@ -24,4 +24,26 @@
 python3.10 tools/i00.py probe --role jupyterhub --output artifacts/i00/jupyter-before.json
 ```
 
-Итерация остаётся открытой до проверки реального JupyterHub и передачи через VDI.
+Браузерный маршрут JupyterHub подтверждён; оставшиеся измерения передачи через VDI сохраняются открытыми.
+
+## Итерация 01
+
+Реализованы устанавливаемый пакет `qr_transfer`, AQR2-repeat, сборка с проверкой SHA-256, ограниченный буфер до metadata, журнал и штатное возобновление, симулятор потерь и явный AQR1-адаптер. [Инструкция и локальный пример](docs/usage/iteration-01.md) · [Спецификация](docs/specs/aqr2.md).
+
+```bash
+python -m pip install .
+python -m qr_transfer --help
+```
+
+30 тестов проходят на Python 3.10 и 3.12. И01 проверяет транспорт; парольный контейнер реализован в И02, новый браузерный отправитель — И03.
+
+## Итерация 02
+
+Реализованы 7z/LZMA2/AES-256 со скрытыми именами, скрытый ввод пароля, внутренний манифест, проверяемая распаковка и повтор после неверного пароля без новой передачи. [Инструкция](docs/usage/iteration-02.md) · [Результаты и профили сжатия](docs/reports/container.md) · [Спецификация](docs/specs/container.md).
+
+```bash
+python -m pip install ".[container]"
+python -m qr_transfer pack artifacts/i00/fixtures/tree --output artifacts/i02/prepared
+```
+
+52/52 теста прошли на Windows/Python 3.10 и 3.12. Интеграционная проверка в реальном JupyterHub остаётся открытой.

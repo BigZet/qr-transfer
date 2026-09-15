@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "state": "object_verified",
+  "transfer_id": "2442a97f477719411e6937634b4eb453",
+  "descriptor": {
+    "object_size": 65536,
+    "sha256": "b534aa85a81fcc6e37ba848aa55becb54b49639dac24b0d7ebc687419eb52eba",
+    "chunk_size": 2800,
+    "total": 24,
+    "container": "opaque-test",
+    "descriptor_version": 1,
+    "transport": "aqr2-repeat"
+  },
+  "received_chunks": 24,
+  "pending_packets": 0,
+  "counters": {
+    "crc": 20,
+    "buffered": 3,
+    "accepted": 24,
+    "metadata": 1,
+    "duplicate": 99
+  },
+  "content_verified": true,
+  "encryption_verified": false,
+  "evidence_level": "synthetic_packet_stream_no_vdi",
+  "python_versions_tested": [
+    "3.10.21",
+    "3.12.10"
+  ],
+  "tests_passed_per_runtime": 30,
+  "parameters": {
+    "seed": 42,
+    "cycles": 5,
+    "loss": 0.15,
+    "corrupt": 0.1,
+    "duplicate": 0.2,
+    "late": 3,
+    "burst_start": 10,
+    "burst_length": 3
+  },
+  "replay_counters_match": true
+}
