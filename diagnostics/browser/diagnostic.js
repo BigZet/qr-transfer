@@ -33,6 +33,9 @@
     const rect = canvas.getBoundingClientRect();
     return { css_viewport: [innerWidth, innerHeight], css_canvas: [rect.width, rect.height],
       canvas_backing: [canvas.width, canvas.height], device_pixel_ratio: devicePixelRatio,
+      css_canvas_origin: [rect.x, rect.y],
+      fullscreen_top_css_px: Number($("fullscreen-top").value),
+      applied_fullscreen_top_css_px: document.fullscreenElement === stage ? parseFloat(getComputedStyle(stage).paddingTop) : 0,
       screen_css: [screen.width, screen.height], visual_viewport_scale: window.visualViewport?.scale ?? null,
       cell_backing_px: Number($("cell").value), host_captured_pixels: "not_measured" };
   }
@@ -186,6 +189,11 @@
   on($("reset"), "click", () => { pause(); frame = 0; visibleUpdates = 0; measuredSeconds = 0; intervals.length = 0; event("reset"); draw(); refresh(); });
   on($("rate"), "change", () => { next = performance.now(); event("rate", { value: Number($("rate").value) }); refresh(); });
   on($("cell"), "change", () => { event("cell", { value: Number($("cell").value) }); draw(); refresh(); });
+  on($("fullscreen-top"), "change", () => {
+    const value = Number($("fullscreen-top").value);
+    stage.style.setProperty("--fullscreen-top", `${value}px`);
+    event("fullscreen_top", { value }); resize(); refresh();
+  });
   on($("fullscreen"), "click", fullscreen); on($("refresh"), "click", refresh); on($("route"), "change", refresh);
   on($("download"), "click", () => {
     refresh();

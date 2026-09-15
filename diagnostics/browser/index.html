@@ -19,7 +19,7 @@
     button { cursor: pointer; } button:hover { background: #3b506f; } button:focus-visible { outline: 3px solid #82cfff; }
     #start { background: #116e9b; }
     #stage { padding: 0; background: white; height: 52vh; min-height: 200px; position: relative; overflow: hidden; }
-    #stage:fullscreen { width: 100vw; height: 100vh; border: 0; border-radius: 0; }
+    #stage:fullscreen { width: 100vw; height: 100vh; margin: 0; min-height: 0; padding-top: var(--fullscreen-top, 48px); border: 0; border-radius: 0; }
     canvas { display: block; width: 100%; height: 100%; }
     #overlay { position: absolute; right: 8px; bottom: 8px; padding: 5px 9px; background: #ffffffed; color: #111; font: 13px monospace; }
     .columns { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 16px; }
@@ -46,6 +46,7 @@
     <button id="reset" type="button">Сброс</button>
     <label>Частота <select id="rate"><option>2</option><option selected>5</option><option>10</option><option>15</option><option>30</option><option>60</option></select> Гц</label>
     <label>Клетка <select id="cell"><option>2</option><option>3</option><option>4</option><option selected>5</option><option>6</option><option>8</option></select> px Canvas</label>
+    <label>Отступ сверху в полном экране <select id="fullscreen-top"><option>0</option><option>24</option><option selected>48</option><option>64</option><option>96</option><option>128</option></select> CSS px</label>
     <button id="fullscreen" type="button">Полный экран</button>
   </div>
   <section id="stage" class="panel" aria-label="Тестовый рисунок">

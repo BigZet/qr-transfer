@@ -76,7 +76,21 @@ def check(args) -> int:
                 page.wait_for_timeout(200)
                 report["fullscreen_result"] = page.evaluate("window.I00.snapshot().features.fullscreen")
                 if page.evaluate("!!document.fullscreenElement"):
+                    for inset in (48, 96, 0):
+                        page.select_option("#fullscreen-top", str(inset), force=True)
+                        page.wait_for_timeout(100)
+                        geometry = page.evaluate("window.I00.snapshot().geometry")
+                        if geometry["css_canvas_origin"] != [0, inset]:
+                            raise AssertionError(f"Fullscreen top inset misplaced: {geometry}")
+                        if geometry["css_canvas"] != [1280, 720 - inset]:
+                            raise AssertionError(f"Fullscreen canvas clipped: {geometry}")
+                        if geometry["canvas_backing"][1] != round((720 - inset) * geometry["device_pixel_ratio"]):
+                            raise AssertionError("Fullscreen backing height ignores inset")
+                    report["checks"].append("fullscreen canvas fits below 48/96/0 CSS px inset")
                     page.evaluate("document.exitFullscreen()")
+                    page.wait_for_timeout(100)
+                    if page.evaluate("window.I00.snapshot().geometry.applied_fullscreen_top_css_px") != 0:
+                        raise AssertionError("Fullscreen inset remains after exit")
                 page.click("#reset")
                 if page.evaluate("window.I00.snapshot().playback.frame") != 0:
                     raise AssertionError("Reset failed")
