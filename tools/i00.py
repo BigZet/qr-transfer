@@ -502,12 +502,28 @@ def receive(args) -> int:
     return 0 if report["ok"] else 1
 
 
+def standalone_browser_html() -> str:
+    source = ROOT / "diagnostics/browser"
+    html = (source / "index.html").read_text(encoding="utf-8")
+    javascript = (source / "diagnostic.js").read_text(encoding="utf-8")
+    worker = (source / "worker.js").read_text(encoding="utf-8")
+    # Escaping prevents a script string from accidentally terminating its HTML tag.
+    code = "window.I00_STANDALONE = true;\nwindow.I00_WORKER_SOURCE = " + json.dumps(worker) + ";\n" + javascript
+    embedded = "<script>\n" + code.replace("</", "<\\/") + "\n</script>"
+    marker = '<script src="diagnostic.js"></script>'
+    if html.count(marker) != 1:
+        raise ValueError("Expected one diagnostic script marker in template")
+    return html.replace(marker, embedded)
+
+
 def browser_bundle(args) -> int:
     source = ROOT / "diagnostics/browser"
     if args.output.resolve().is_relative_to(source.resolve()):
         raise ValueError("Browser output must be outside the source bundle")
     shutil.copytree(source, args.output)
-    print(f"Browser diagnostic bundle: {args.output / 'index.html'}")
+    (args.output / "standalone.html").write_text(standalone_browser_html(), encoding="utf-8")
+    print(f"JupyterLab / single-file diagnostic: {args.output / 'standalone.html'}")
+    print(f"External-resource diagnostic: {args.output / 'index.html'}")
     print("Open via your existing JupyterHub route. JavaScript/WASM policy is measured, not changed.")
     return 0
 

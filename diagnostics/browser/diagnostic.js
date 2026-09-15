@@ -7,14 +7,18 @@
   const started = performance.now();
   const events = [], intervals = [];
   const listeners = [];
+  const standalone = window.I00_STANDALONE === true;
   const features = {
     inline_script: window.I00_INLINE === true ? "ok" : "not_executed",
-    external_script: "ok", relative_json_fetch: "pending", worker: "pending", wasm: "pending",
+    main_script: "ok", main_script_source: standalone ? "inline" : "external",
+    external_script: standalone ? "not_tested" : "ok",
+    relative_json_fetch: standalone ? "not_tested" : "pending",
+    worker: "pending", worker_source: standalone ? "blob" : "relative_file", wasm: "pending",
     fullscreen: "not_tested", canvas: context ? "ok" : "unavailable",
   };
   let running = false, frame = 0, raf = null, next = 0, lastRendered = null;
   let visibleUpdates = 0, startedAt = null, measuredSeconds = 0, lastSample = performance.now();
-  let disposed = false, featureWorker = null, workerTimer = null;
+  let disposed = false, featureWorker = null, workerTimer = null, workerURL = null;
   let previousWidth = 0, previousHeight = 0;
 
   function event(type, detail = {}) {
@@ -144,25 +148,32 @@
     refresh();
   }
   async function testFeatures() {
+    if (!standalone) {
     try {
       const response = await fetch("probe.json", { cache: "no-store", credentials: "same-origin" });
       if (!response.ok) throw new Error("http");
       const json = await response.json();
       features.relative_json_fetch = json.diagnostic === "i00-relative-resource-v1" ? "ok" : "unexpected_data";
     } catch (error) { features.relative_json_fetch = `failed:${error.name}`; }
+    }
+    if (disposed) return;
     try {
       const wasm = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]);
       await WebAssembly.instantiate(wasm);
       features.wasm = "ok";
     } catch (error) { features.wasm = `failed:${error.name}`; }
+    if (disposed) return;
     features.worker = await new Promise((resolve) => {
       const done = (value) => {
         clearTimeout(workerTimer);
         if (featureWorker) featureWorker.terminate();
+        if (workerURL) URL.revokeObjectURL(workerURL);
+        workerURL = null;
         featureWorker = null; resolve(value);
       };
       try {
-        featureWorker = new Worker("worker.js");
+        if (standalone) workerURL = URL.createObjectURL(new Blob([window.I00_WORKER_SOURCE], { type: "text/javascript" }));
+        featureWorker = new Worker(standalone ? workerURL : "worker.js");
         workerTimer = setTimeout(() => done("timeout"), 3000);
         featureWorker.onmessage = (message) => done(message.data === "i00-worker-ok" ? "ok" : "unexpected_data");
         featureWorker.onerror = () => done("failed:worker_error");
@@ -198,6 +209,7 @@
     disposed = true; running = false;
     if (raf !== null) cancelAnimationFrame(raf);
     if (featureWorker) featureWorker.terminate();
+    if (workerURL) URL.revokeObjectURL(workerURL);
     clearTimeout(workerTimer);
     listeners.forEach((remove) => remove());
   }

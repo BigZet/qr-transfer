@@ -123,6 +123,13 @@ class BaselineTests(unittest.TestCase):
             with self.assertRaises(argparse.ArgumentTypeError):
                 i00.positive(value)
 
+    def test_standalone_browser_contains_application_without_script_src(self):
+        html = i00.standalone_browser_html()
+        self.assertNotIn('<script src=', html)
+        self.assertIn('window.I00_STANDALONE = true;', html)
+        self.assertIn('window.I00 = { snapshot:', html)
+        self.assertIn('i00-worker-ok', html)
+
     def test_diagnostic_error_redacts_url_credentials(self):
         result = i00.error_info(ValueError("Failed https://user:password@mirror.invalid/pypi?token=secret"))
         self.assertNotIn("password", json.dumps(result))

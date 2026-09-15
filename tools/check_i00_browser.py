@@ -13,7 +13,7 @@ import threading
 import time
 from pathlib import Path
 
-from i00 import ROOT, digest, html_frames, load_legacy, provenance, verify_received, write_json
+from i00 import ROOT, digest, html_frames, load_legacy, provenance, standalone_browser_html, verify_received, write_json
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
@@ -88,6 +88,30 @@ def check(args) -> int:
                 page.wait_for_function("window.I00 && window.I00.snapshot().features.worker !== 'pending'")
                 if page.evaluate("window.I00.snapshot().playback.frame") != 0:
                     raise AssertionError("Reload state is stale")
+
+                # Reproduce a viewer with working inline JS but unavailable adjacent files.
+                isolated = browser.new_page(viewport={"width": 1280, "height": 900})
+                isolated.route("**/*", lambda route: route.abort())
+                isolated.set_content('<iframe id="viewer" sandbox="allow-scripts" style="width:100%;height:850px"></iframe>')
+                isolated.evaluate("html => document.getElementById('viewer').srcdoc = html",
+                                  (ROOT / "diagnostics/browser/index.html").read_text(encoding="utf-8"))
+                frame = isolated.frames[-1]
+                frame.wait_for_function("window.I00_INLINE === true")
+                if frame.evaluate("typeof window.I00") != "undefined":
+                    raise AssertionError("Missing-resource regression did not reproduce")
+                isolated.evaluate("html => document.getElementById('viewer').srcdoc = html", standalone_browser_html())
+                frame.wait_for_function("window.I00 && window.I00.snapshot().features.worker !== 'pending'")
+                state = frame.evaluate("window.I00.snapshot()")
+                if state["features"]["main_script_source"] != "inline" or state["features"]["external_script"] != "not_tested":
+                    raise AssertionError("Standalone misreported external-resource support")
+                frame.evaluate("window.I00.start()")
+                isolated.wait_for_timeout(650)
+                frame.evaluate("window.I00.pause()")
+                if frame.evaluate("window.I00.snapshot().playback.frame") < 2:
+                    raise AssertionError("Standalone animation failed without adjacent files")
+                report["standalone_sandbox"] = frame.evaluate("window.I00.snapshot()")
+                isolated.close()
+                report["checks"].append("viewer regression reproduced; standalone works in sandbox with network requests blocked")
 
                 # Decode the actual browser-rendered legacy QR at the old 90vmin Full HD geometry.
                 # This is independent of both PNG decoding and physical desktop/VDI capture.
