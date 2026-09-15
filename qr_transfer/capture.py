@@ -1,14 +1,16 @@
-"""Single-monitor/single-QR capture adapter. No screenshots persisted."""
+"""Screen capture orchestration with transactional resume and bounded frames."""
 from __future__ import annotations
 
 import json
 import math
+from collections import defaultdict, Counter
 from pathlib import Path
 import time
 
 from .interfaces import State
 from .protocol import META, TransferDescriptor, decode, ProtocolError
-from .stream import Session
+from .storage import DurableSession
+from .pipeline import Decoded, LatestFrames, MultiDecoder, region, screen_source
 
 
 def validate_options(monitor, fps, first_timeout, idle_timeout, total_timeout):
@@ -22,17 +24,29 @@ def validate_options(monitor, fps, first_timeout, idle_timeout, total_timeout):
 
 def receive_frames(directory: Path, grab, decoder, *, fps=12, first_timeout=120,
                    idle_timeout=600, total_timeout=0, clock=time.monotonic,
-                   sleep=time.sleep, progress=None):
+                   sleep=time.sleep, progress=None, resume=False, paced=False):
     validate_options(1, fps, first_timeout, idle_timeout, total_timeout)
     started = clock()
     frames = no_qr = 0
     seen = False
     last_new = last_report = started
     reason, code = "error", 1
-    with Session(directory) as session:
+    slots = defaultdict(Counter)
+    with DurableSession(directory, resume=resume) as session:
         receiver = session.receiver
+        initial_bytes = receiver.received_bytes
+        decode_seconds = 0.0
+        try:
+            import psutil
+            process = psutil.Process()
+        except ImportError:
+            process = None
+        peak_rss = process.memory_info().rss if process else None
         try:
             while True:
+                if receiver.state == State.VERIFIED:
+                    reason, code = "object_verified", 0
+                    break
                 now = clock()
                 if total_timeout and now - started >= total_timeout:
                     reason, code = "total_timeout", 2
@@ -44,51 +58,79 @@ def receive_frames(directory: Path, grab, decoder, *, fps=12, first_timeout=120,
                     reason, code = "idle_timeout", 2
                     break
                 frame_start = now
-                raw = decoder(grab())
-                frames += 1
-                if raw is None:
-                    no_qr += 1
-                else:
-                    # Screen MVP only accepts encrypted-container sessions.
+                image = grab()
+                before = clock()
+                decoded = decoder(image) if image is not None else []
+                decode_seconds += clock() - before
+                frames += image is not None
+                if decoded is None:
+                    decoded = []
+                if isinstance(decoded, bytes):
+                    decoded = [Decoded(decoded)]
+                if not decoded:
+                    no_qr += image is not None
+                for item in decoded:
+                    if isinstance(item, bytes):
+                        item = Decoded(item)
+                    raw = item.raw
+                    metrics = slots[item.slot]
+                    metrics['symbols'] += 1
+                    metrics['decode_seconds'] += item.seconds
                     try:
                         packet = decode(raw)
-                        if packet.kind == META and TransferDescriptor.from_bytes(packet.payload).container != "7z-aes256":
-                            receiver.counters["wrong_container"] += 1
-                            raw = None
+                        if packet.kind == META and TransferDescriptor.from_bytes(packet.payload).container != '7z-aes256':
+                            receiver.counters['wrong_container'] += 1
+                            metrics['invalid'] += 1
+                            continue
                     except ProtocolError:
-                        pass  # Receiver counts the precise parser rejection below.
-                    if raw is not None:
-                        event = receiver.feed(raw)
-                        if event.reason in ("buffered", "metadata", "accepted"):
-                            if not seen or event.reason in ("buffered", "accepted"):
-                                last_new = clock()
-                            seen = True
+                        metrics['invalid'] += 1
+                    else:
+                        metrics['valid'] += 1
+                    event = receiver.feed(raw)
+                    metrics[event.reason] += 1
+                    if event.reason == 'conflict':
+                        receiver.state = State.ERROR
+                        reason, code = 'packet_conflict', 1
+                        break
+                    if event.reason in ('buffered', 'metadata', 'accepted'):
+                        if not seen or event.reason in ('buffered', 'accepted'):
+                            last_new = clock()
+                        seen = True
                 if receiver.state == State.VERIFIED:
                     reason, code = "object_verified", 0
                     break
                 if receiver.state == State.ERROR:
-                    reason, code = "integrity_error", 1
+                    reason, code = ("packet_conflict" if reason == "packet_conflict" else "integrity_error"), 1
                     break
-                if progress and clock() - last_report >= 1:
+                if clock() - last_report >= 1:
+                    if process:
+                        peak_rss = max(peak_rss, process.memory_info().rss)
                     elapsed = max(.001, clock() - started)
-                    progress({**receiver.snapshot(), "elapsed_seconds": elapsed,
-                              "capture_fps": frames / elapsed, "useful_bytes_per_second": receiver.received_bytes / elapsed})
+                    session.write_status()
+                    status = {**session.snapshot(), "elapsed_seconds": elapsed,
+                              "capture_fps": frames / elapsed, "useful_bytes_per_second": (receiver.received_bytes - initial_bytes) / elapsed,
+                              "no_progress_seconds":clock()-last_new, "rss_sampled_peak":peak_rss}
+                    if progress:
+                        progress(status)
                     last_report = clock()
-                sleep(max(0, 1 / fps - (clock() - frame_start)))
+                if not paced:
+                    sleep(max(0, 1 / fps - (clock() - frame_start)))
         except KeyboardInterrupt:
             receiver.cancel()
             reason, code = "interrupted", 130
-        except Exception:
+        except Exception as error:
             receiver.state = State.ERROR
-            reason, code = "capture_error", 1
+            reason, code = getattr(error, "reason", "capture_error"), 1
         finally:
             elapsed = max(.000001, clock() - started)
             result = {"schema": 1, "termination": reason, "exit_code": code,
                       "elapsed_seconds": elapsed, "frames_captured": frames, "no_qr_frames": no_qr,
                       "capture_fps": frames / elapsed, "target_fps": fps,
-                      "useful_bytes_per_second": receiver.received_bytes / elapsed,
+                      "useful_bytes_per_second": (receiver.received_bytes - initial_bytes) / elapsed,
                       "first_timeout": first_timeout, "idle_timeout": idle_timeout, "total_timeout": total_timeout,
-                      "transfer": receiver.snapshot()}
+                      "rss_sampled_peak":peak_rss, "resumed":resume, "initial_bytes":initial_bytes, "decode_seconds":decode_seconds,
+                      "no_progress_seconds":clock()-last_new, "slots":dict(slots),
+                      "transfer": session.snapshot()}
             (directory / "capture.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     return result
 
@@ -101,22 +143,31 @@ def monitors():
 
 
 def receive_screen(directory: Path, *, monitor=1, fps=12, first_timeout=120,
-                   idle_timeout=600, total_timeout=0, progress=None):
+                   idle_timeout=600, total_timeout=0, progress=None, resume=False,
+                   roi=None, pipeline=True, queue_size=2, cached=True):
     validate_options(monitor, fps, first_timeout, idle_timeout, total_timeout)
-    import mss
-    from PIL import Image
-    import zxingcpp
-    with mss.mss() as screen:
-        if monitor >= len(screen.monitors):
-            raise ValueError("Monitor unavailable; use monitors command")
-        area = {key:screen.monitors[monitor][key] for key in ("left","top","width","height")}
-        def decoder(shot):
-            picture = Image.frombytes("RGB", shot.size, shot.bgra, "raw", "BGRX")
-            value = zxingcpp.read_barcode(picture, formats=zxingcpp.BarcodeFormat.QRCode)
-            return bytes(value.bytes) if value is not None else None
-        result = receive_frames(directory, lambda: screen.grab(area), decoder, fps=fps,
-                                first_timeout=first_timeout, idle_timeout=idle_timeout,
-                                total_timeout=total_timeout, progress=progress)
-        result.update(monitor=monitor, capture_area=dict(area), evidence_level="screen_capture_route_unverified")
-        (directory / "capture.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
-        return result
+    available = monitors()
+    if monitor > len(available):
+        raise ValueError('monitor_unavailable')
+    area = region(available[monitor-1], roi)
+    decoder = MultiDecoder(cached=cached)
+    geometry = {}
+    factory = lambda: screen_source(monitor, roi, geometry)
+    options = dict(fps=fps, first_timeout=first_timeout, idle_timeout=idle_timeout,
+                   total_timeout=total_timeout, progress=progress, resume=resume)
+    if pipeline:
+        source = LatestFrames(factory, fps=fps, capacity=queue_size)
+        try:
+            result = receive_frames(directory, source.grab, decoder, paced=True, **options)
+        finally:
+            source.close()
+        result['pipeline'] = dict(source.stats)
+        result['pipeline']['capture_fps'] = source.stats['captured'] / result['elapsed_seconds']
+        result['pipeline']['processed_fps'] = result['capture_fps']
+    else:
+        with factory() as grab:
+            result = receive_frames(directory, grab, decoder, **options)
+    result.update(monitor=monitor, capture_area=area, roi=roi, geometry=geometry,
+                  decoder=dict(decoder.stats), evidence_level='screen_capture_route_unverified')
+    (directory / 'capture.json').write_text(json.dumps(result, indent=2)+'\n', encoding='utf-8')
+    return result

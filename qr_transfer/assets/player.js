@@ -9,18 +9,30 @@
   let bytes = null, sequence = [], cursor = 0, ready = false, running = false, disposed = false;
   let raf = null, next = 0, updates = 0, cycles = 0, activeSince = null, activeMs = 0, lastShown = null;
   let intervals = [], modulePx = 0, loadMs = null, lastReport = 0, fullscreenResult = "not_tested";
-  const stride = 3917;
+  let slots = 1, shown = [0], baseSequence = [], nextSlot = 0, slotUpdates = [0,0];
+  const gap = 8, stride = 3917;
+  $("slots").value = config.slots || 1; $("mode").value = config.update_mode || "sync";
   $("interval").value = config.interval_ms;
   function on(target, name, callback) { target.addEventListener(name, callback); listeners.push(() => target.removeEventListener(name, callback)); }
   function event(type, detail = {}) { events.push({at_ms: performance.now() - started, type, ...detail}); if (events.length > 100) events.shift(); }
   function interval() { return Number($("interval").value); }
+  function period() { return interval() / ($("mode").value === "staggered" ? slots : 1); }
+  function layoutSchedule() {
+    sequence = baseSequence.slice();
+    if (slots === 2 && sequence.length % 2) sequence.push(0);
+    cursor = sequence.length ? cursor % sequence.length : 0;
+    shown = Array.from({length:slots}, (_,i) => sequence[(cursor+i)%sequence.length] ?? 0);
+    nextSlot = 0;
+  }
   function snapshot() {
     const rect = canvas.getBoundingClientRect(), seconds = (activeMs + (activeSince === null ? 0 : performance.now() - activeSince)) / 1000;
     return {schema:1, profile:"mono-safe", evidence_level:"browser_only", ready, running, disposed,
-      transfer_id:config.transfer_id, current_packet:sequence[cursor] ?? null, cursor, cycle:cycles, updates,
+      transfer_id:config.transfer_id, current_packet:shown[0] ?? null, slot_packets:shown.slice(), slots, requested_slots:Number($("slots").value),
+      update_mode:$("mode").value, slot_updates:slotUpdates.slice(0,slots),
+      slot_updates_per_second:slotUpdates.slice(0,slots).map(n=>seconds>0?n/seconds:0), cursor, cycle:cycles, updates,
       target_interval_ms:interval(), actual_updates_per_second:seconds > 0 ? updates / seconds : 0,
       active_seconds:seconds, recent_intervals_ms:intervals.slice(), load_ms:loadMs, unique_frames:config.descriptor.total + 1,
-      cycle_frames:sequence.length, cycle_seconds:sequence.length * interval() / 1000,
+      cycle_frames:sequence.length, cycle_seconds:sequence.length * interval() / (1000 * slots),
       visibility:document.visibilityState, fullscreen:fullscreenResult, embedded:window.self !== window.top,
       geometry:{viewport_css:[innerWidth,innerHeight], canvas_backing:[canvas.width,canvas.height],
         canvas_css:[rect.width,rect.height], canvas_origin_css:[rect.x,rect.y], device_pixel_ratio:devicePixelRatio,
@@ -30,14 +42,16 @@
   }
   function refresh() {
     const s = snapshot();
-    $("stats").textContent = ready ? `${running ? "Показ" : "Пауза"} · кадр ${cursor + 1}/${sequence.length} · цикл ${cycles + 1} · ${s.actual_updates_per_second.toFixed(2)} обновл./с · ${modulePx} px/модуль` : "Ожидание данных";
+    $("stats").textContent = ready ? `${running ? "Показ" : "Пауза"} · кадр ${cursor + 1}/${sequence.length} · цикл ${cycles + 1} · ${s.actual_updates_per_second.toFixed(2)} обновл./с · ${modulePx} px/модуль · ${slots} QR` : "Ожидание данных";
     $("report").textContent = JSON.stringify(s, null, 2);
     for (const name of ["start", "pause", "step", "reset"]) $(name).disabled = !ready || modulePx < 1;
   }
   function paint() {
     if (!ready || modulePx < 1 || disposed) return;
+    ctx.fillStyle = "white"; ctx.fillRect(0,0,canvas.width,canvas.height);
+    for (let slot=0; slot<slots; slot++) {
     pixels.data.fill(255);
-    const offset = 12 + sequence[cursor] * stride;
+    const offset = 12 + shown[slot] * stride;
     for (let y = 0; y < 177; y++) for (let x = 0; x < 177; x++) {
       const bit = y * 177 + x;
       if (bytes[offset + (bit >> 3)] & (128 >> (bit & 7))) {
@@ -47,37 +61,58 @@
     }
     baseCtx.putImageData(pixels, 0, 0);
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(base, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(base, slot*(185*modulePx+gap), 0, 185*modulePx, 185*modulePx);
+    }
   }
   function resize() {
     const rect = stage.getBoundingClientRect(), dpr = devicePixelRatio;
     const inset = document.fullscreenElement === stage ? Math.ceil(Number($("top").value) * dpr) : 0;
     const width = Math.floor(rect.width * dpr), height = Math.floor(rect.height * dpr) - inset;
-    modulePx = Math.max(0, Math.floor(Math.min(width, height) / 185));
+    const previous = slots; slots = Number($("slots").value);
+    const scale = n => Math.max(0, Math.floor(Math.min((width-gap*(n-1))/n, height)/185));
+    if (slots === 2 && scale(2)<4 && scale(1)>=4) slots=1;
+    modulePx = scale(slots);
+    if (slots !== previous) { layoutSchedule(); event("layout", {slots}); next=performance.now()+period(); }
     const side = modulePx * 185;
-    canvas.width = canvas.height = Math.max(1, side);
-    canvas.style.width = canvas.style.height = `${side / dpr}px`;
-    canvas.style.left = `${(Math.ceil(rect.left * dpr) + Math.floor((width - side) / 2)) / dpr - rect.left}px`;
+    const totalWidth = side*slots+gap*(slots-1);
+    canvas.width = Math.max(1,totalWidth); canvas.height = Math.max(1,side);
+    canvas.style.width = `${totalWidth/dpr}px`; canvas.style.height = `${side/dpr}px`;
+    canvas.style.left = `${(Math.ceil(rect.left * dpr) + Math.floor((width - totalWidth) / 2)) / dpr - rect.left}px`;
     canvas.style.top = `${(Math.ceil(rect.top * dpr) + inset + Math.floor((height - side) / 2)) / dpr - rect.top}px`;
     if (modulePx < 1) pause();
     paint(); refresh();
   }
-  function advance() { cursor = (cursor + 1) % sequence.length; if (!cursor) cycles++; paint(); }
+  function advance(countUpdate = false) {
+    const staggered = $("mode").value === "staggered" && slots === 2;
+    const count = staggered ? 1 : slots;
+    const old = cursor;
+    if (staggered) {
+      shown[nextSlot] = sequence[(cursor+slots)%sequence.length];
+      if (countUpdate) slotUpdates[nextSlot]++; nextSlot=(nextSlot+1)%slots;
+    }
+    cursor=(cursor+count)%sequence.length;
+    if (old+count >= sequence.length) cycles++;
+    if (!staggered) {
+      shown=Array.from({length:slots}, (_,i)=>sequence[(cursor+i)%sequence.length]);
+      if (countUpdate) for(let i=0;i<slots;i++) slotUpdates[i]++;
+    }
+    paint();
+  }
   function tick(now) {
     raf = null;
     if (!running || disposed) return;
     if (now >= next) {
-      advance(); updates++;
+      advance(true); updates++;
       if (lastShown !== null) { intervals.push(now - lastShown); if (intervals.length > 120) intervals.shift(); }
       lastShown = now;
-      next = performance.now() + interval(); // Full hold after rendering; no catch-up burst.
+      next = performance.now() + period(); // Full hold after rendering; no catch-up burst.
     }
     if (now - lastReport >= 1000) { refresh(); lastReport = now; }
     raf = requestAnimationFrame(tick);
   }
   function start() {
     if (!ready || disposed || running || modulePx < 1 || document.hidden) return;
-    running = true; activeSince = performance.now(); lastShown = null; next = activeSince + interval();
+    running = true; activeSince = performance.now(); lastShown = null; next = activeSince + period();
     $("status").textContent = modulePx < 4 ? "Показ идёт. QR мелкий: увеличьте область или включите полный экран." : "Показ идёт по кругу. Остановите его после завершения приёма на хосте.";
     event("start"); raf = requestAnimationFrame(tick); refresh();
   }
@@ -89,13 +124,15 @@
     if (ready && !disposed) $("status").textContent = "Пауза. Последний кадр сохранён; Старт — продолжить.";
   }
   function step() { if (!ready || disposed) return; pause(); advance(); event("step"); refresh(); }
-  function reset() { if (!ready || disposed) return; pause(); cursor = cycles = updates = activeMs = 0; intervals = []; paint(); event("reset"); refresh(); }
+  function reset() { if (!ready || disposed) return; pause(); cursor = cycles = updates = activeMs = 0; intervals = []; slotUpdates=[0,0]; layoutSchedule(); paint(); event("reset"); refresh(); }
   function dispose() { pause(); disposed = true; abort.abort(); listeners.forEach(remove => remove()); bytes = null; sequence = []; }
   on($("start"), "click", start); on($("pause"), "click", pause); on($("step"), "click", step); on($("reset"), "click", reset);
   on($("interval"), "change", () => {
     if (!Number.isFinite(interval()) || interval() < 50 || interval() > 10000) $("interval").value = config.interval_ms;
-    next = performance.now() + interval(); event("interval", {value:interval()}); refresh();
+    next = performance.now() + period(); event("interval", {value:interval()}); refresh();
   });
+  on($("slots"), "change", resize);
+  on($("mode"), "change", () => { layoutSchedule(); paint(); next=performance.now()+period(); event("mode", {value:$("mode").value}); refresh(); });
   on($("top"), "change", resize); on(window, "resize", resize);
   on($("fullscreen"), "click", async () => {
     try { if (document.fullscreenElement) await document.exitFullscreen(); else await stage.requestFullscreen(); fullscreenResult = "ok"; }
@@ -145,8 +182,9 @@
       const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
       if (view.getUint32(0) !== 0x51524d31 || view.getUint16(4) !== 177 || view.getUint16(6) !== 4 ||
           view.getUint32(8) !== config.descriptor.total + 1 || bytes.length !== 12 + view.getUint32(8) * stride) throw Error("layout");
-      sequence.push(0);
-      for (let i = 1; i <= config.descriptor.total; i++) { sequence.push(i); if (i % config.metadata_every === 0) sequence.push(0); }
+      baseSequence.push(0);
+      for (let i = 1; i <= config.descriptor.total; i++) { baseSequence.push(i); if (i % config.metadata_every === 0) baseSequence.push(0); }
+      layoutSchedule();
       ready = true; loadMs = performance.now() - started;
       $("status").textContent = "Архив загружен. Запустите приёмник на хосте, затем нажмите Старт. Space — пауза, Esc — выход из полного экрана.";
       resize(); event("ready"); refresh();

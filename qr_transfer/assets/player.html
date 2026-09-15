@@ -18,6 +18,8 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#182436;padding:12px}
 <button id="start" disabled>Старт</button><button id="pause" disabled>Пауза</button><button id="step" disabled>Один кадр</button><button id="reset" disabled>С начала</button>
 <label>Кадр, мс <input id="interval" type="number" min="50" max="10000" step="50" value="600"></label>
 <label>Отступ сверху <select id="top"><option>0</option><option>24</option><option selected>48</option><option>64</option><option>96</option><option>128</option></select> CSS px</label>
+<label>QR <select id="slots"><option value="1">1×1</option><option value="2">2×1</option></select></label>
+<label>Обновление <select id="mode"><option value="sync">Одновременно</option><option value="staggered">Поочерёдно</option></select></label>
 <button id="fullscreen">Полный экран</button>
 </div>
 <section id="stage" aria-label="Область передачи"><canvas id="qr" aria-label="QR-код"></canvas></section>

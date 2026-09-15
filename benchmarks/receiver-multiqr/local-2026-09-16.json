@@ -1,0 +1,843 @@
+{
+  "schema": 1,
+  "evidence_level": "local_synthetic_no_vdi",
+  "runs": [
+    {
+      "slots": 1,
+      "mode": "sync",
+      "capture": {
+        "schema": 1,
+        "termination": "object_verified",
+        "exit_code": 0,
+        "elapsed_seconds": 10.922000000005937,
+        "frames_captured": 127,
+        "no_qr_frames": 0,
+        "capture_fps": 11.627906976737865,
+        "target_fps": 12,
+        "useful_bytes_per_second": 6043.947994869449,
+        "first_timeout": 10,
+        "idle_timeout": 15,
+        "total_timeout": 30,
+        "rss_sampled_peak": 70537216,
+        "resumed": false,
+        "initial_bytes": 0,
+        "decode_seconds": 1.8830000000452856,
+        "no_progress_seconds": 0.0,
+        "slots": {
+          "0": {
+            "symbols": 127,
+            "decode_seconds": 1.8830000000452856,
+            "valid": 127,
+            "metadata": 1,
+            "duplicate": 102,
+            "accepted": 24
+          }
+        },
+        "transfer": {
+          "schema": 1,
+          "state": "object_verified",
+          "transfer_id": "82acd65da2582a0a3fbd4dd8be692c9e",
+          "descriptor": {
+            "object_size": 66012,
+            "sha256": "9b1584e549a83a33a08a2383b06449007ceb55eccd7e093896eb4944af2ac4b2",
+            "chunk_size": 2800,
+            "total": 24,
+            "container": "7z-aes256",
+            "descriptor_version": 1,
+            "transport": "aqr2-repeat"
+          },
+          "received_chunks": 24,
+          "pending_packets": 0,
+          "received_bytes": 66012,
+          "counters": {
+            "metadata": 1,
+            "duplicate": 102,
+            "accepted": 24
+          },
+          "content_verified": true,
+          "encryption_verified": false,
+          "storage_schema": 1,
+          "committed_chunks": 24,
+          "missing_ranges": [],
+          "state_bytes": 243356
+        }
+      },
+      "decoder": {
+        "full_search_frames": 11,
+        "decode_seconds": 1.8830000000452856,
+        "cached_frames": 116
+      },
+      "player": {
+        "schema": 1,
+        "profile": "mono-safe",
+        "evidence_level": "browser_only",
+        "ready": true,
+        "running": false,
+        "disposed": false,
+        "transfer_id": "82acd65da2582a0a3fbd4dd8be692c9e",
+        "current_packet": 24,
+        "slot_packets": [
+          24
+        ],
+        "slots": 1,
+        "requested_slots": 1,
+        "update_mode": "sync",
+        "slot_updates": [
+          26
+        ],
+        "slot_updates_per_second": [
+          2.3779255343476295
+        ],
+        "cursor": 26,
+        "cycle": 0,
+        "updates": 26,
+        "target_interval_ms": 400,
+        "actual_updates_per_second": 2.3779255343476295,
+        "active_seconds": 10.93389999999851,
+        "recent_intervals_ms": [
+          416.69999999999993,
+          416.60000000000014,
+          416.70000000000005,
+          416.7999999999997,
+          416.7000000000003,
+          416.5999999999999,
+          416.6999999999998,
+          416.7000000000003,
+          416.7999999999997,
+          416.6999999999998,
+          416.8000000000002,
+          416.40000000000055,
+          416.7999999999993,
+          416.7000000000007,
+          416.6999999999998,
+          416.59999999999945,
+          416.8000000000002,
+          416.59999999999945,
+          416.7000000000007,
+          416.7999999999993,
+          416.7000000000007,
+          416.7000000000007,
+          416.5,
+          416.7999999999993,
+          416.7000000000007
+        ],
+        "load_ms": 29.80000000447035,
+        "unique_frames": 25,
+        "cycle_frames": 28,
+        "cycle_seconds": 11.2,
+        "visibility": "visible",
+        "fullscreen": "ok",
+        "embedded": false,
+        "geometry": {
+          "viewport_css": [
+            1920,
+            1080
+          ],
+          "canvas_backing": [
+            925,
+            925
+          ],
+          "canvas_css": [
+            925,
+            925
+          ],
+          "canvas_origin_css": [
+            497,
+            101
+          ],
+          "device_pixel_ratio": 1,
+          "module_backing_px": 5,
+          "quiet_modules": 4,
+          "top_inset_css": 48,
+          "applied_top_inset_css": 48,
+          "host_pixels": "not_measured"
+        },
+        "events": [
+          {
+            "at_ms": 14.400000005960464,
+            "type": "layout",
+            "slots": 2
+          },
+          {
+            "at_ms": 57.30000000447035,
+            "type": "ready"
+          },
+          {
+            "at_ms": 120.70000000298023,
+            "type": "layout",
+            "slots": 1
+          },
+          {
+            "at_ms": 126.5,
+            "type": "mode",
+            "value": "sync"
+          },
+          {
+            "at_ms": 331.40000000596046,
+            "type": "start"
+          }
+        ]
+      },
+      "restored_equal": true
+    },
+    {
+      "slots": 2,
+      "mode": "sync",
+      "capture": {
+        "schema": 1,
+        "termination": "object_verified",
+        "exit_code": 0,
+        "elapsed_seconds": 5.561999999998079,
+        "frames_captured": 57,
+        "no_qr_frames": 0,
+        "capture_fps": 10.248112189863303,
+        "target_fps": 12,
+        "useful_bytes_per_second": 11868.392664513269,
+        "first_timeout": 10,
+        "idle_timeout": 15,
+        "total_timeout": 30,
+        "rss_sampled_peak": 70582272,
+        "resumed": false,
+        "initial_bytes": 0,
+        "decode_seconds": 1.422999999995227,
+        "no_progress_seconds": 0.0,
+        "slots": {
+          "0": {
+            "symbols": 57,
+            "decode_seconds": 0.7029999999977008,
+            "valid": 57,
+            "metadata": 1,
+            "duplicate": 44,
+            "accepted": 12
+          },
+          "1": {
+            "symbols": 57,
+            "decode_seconds": 0.7199999999975262,
+            "valid": 57,
+            "accepted": 12,
+            "duplicate": 45
+          }
+        },
+        "transfer": {
+          "schema": 1,
+          "state": "object_verified",
+          "transfer_id": "82acd65da2582a0a3fbd4dd8be692c9e",
+          "descriptor": {
+            "object_size": 66012,
+            "sha256": "9b1584e549a83a33a08a2383b06449007ceb55eccd7e093896eb4944af2ac4b2",
+            "chunk_size": 2800,
+            "total": 24,
+            "container": "7z-aes256",
+            "descriptor_version": 1,
+            "transport": "aqr2-repeat"
+          },
+          "received_chunks": 24,
+          "pending_packets": 0,
+          "received_bytes": 66012,
+          "counters": {
+            "metadata": 1,
+            "accepted": 24,
+            "duplicate": 89
+          },
+          "content_verified": true,
+          "encryption_verified": false,
+          "storage_schema": 1,
+          "committed_chunks": 24,
+          "missing_ranges": [],
+          "state_bytes": 243356
+        }
+      },
+      "decoder": {
+        "full_search_frames": 6,
+        "decode_seconds": 1.422999999995227,
+        "cached_frames": 51
+      },
+      "player": {
+        "schema": 1,
+        "profile": "mono-safe",
+        "evidence_level": "browser_only",
+        "ready": true,
+        "running": false,
+        "disposed": false,
+        "transfer_id": "82acd65da2582a0a3fbd4dd8be692c9e",
+        "current_packet": 24,
+        "slot_packets": [
+          24,
+          0
+        ],
+        "slots": 2,
+        "requested_slots": 2,
+        "update_mode": "sync",
+        "slot_updates": [
+          13,
+          13
+        ],
+        "slot_updates_per_second": [
+          2.3390129365382712,
+          2.3390129365382712
+        ],
+        "cursor": 26,
+        "cycle": 0,
+        "updates": 13,
+        "target_interval_ms": 400,
+        "actual_updates_per_second": 2.3390129365382712,
+        "active_seconds": 5.557900000005961,
+        "recent_intervals_ms": [
+          416.60000000000014,
+          416.6999999999998,
+          416.60000000000014,
+          416.70000000000005,
+          416.7999999999997,
+          416.7000000000003,
+          416.5999999999999,
+          416.6999999999998,
+          416.6999999999998,
+          416.7000000000007,
+          416.6999999999998,
+          417.09999999999945
+        ],
+        "load_ms": 12.399999998509884,
+        "unique_frames": 25,
+        "cycle_frames": 28,
+        "cycle_seconds": 5.6,
+        "visibility": "visible",
+        "fullscreen": "ok",
+        "embedded": false,
+        "geometry": {
+          "viewport_css": [
+            1920,
+            1080
+          ],
+          "canvas_backing": [
+            1858,
+            925
+          ],
+          "canvas_css": [
+            1858,
+            925
+          ],
+          "canvas_origin_css": [
+            31,
+            101
+          ],
+          "device_pixel_ratio": 1,
+          "module_backing_px": 5,
+          "quiet_modules": 4,
+          "top_inset_css": 48,
+          "applied_top_inset_css": 48,
+          "host_pixels": "not_measured"
+        },
+        "events": [
+          {
+            "at_ms": 1.2999999970197678,
+            "type": "layout",
+            "slots": 2
+          },
+          {
+            "at_ms": 14.399999998509884,
+            "type": "ready"
+          },
+          {
+            "at_ms": 54.399999998509884,
+            "type": "mode",
+            "value": "sync"
+          },
+          {
+            "at_ms": 256.19999999552965,
+            "type": "start"
+          }
+        ]
+      },
+      "restored_equal": true
+    },
+    {
+      "slots": 2,
+      "mode": "staggered",
+      "capture": {
+        "schema": 1,
+        "termination": "object_verified",
+        "exit_code": 0,
+        "elapsed_seconds": 5.530999999995402,
+        "frames_captured": 56,
+        "no_qr_frames": 0,
+        "capture_fps": 10.124751401201692,
+        "target_fps": 12,
+        "useful_bytes_per_second": 11934.912312430823,
+        "first_timeout": 10,
+        "idle_timeout": 15,
+        "total_timeout": 30,
+        "rss_sampled_peak": 71921664,
+        "resumed": false,
+        "initial_bytes": 0,
+        "decode_seconds": 1.5470000000059372,
+        "no_progress_seconds": 0.0,
+        "slots": {
+          "0": {
+            "symbols": 56,
+            "decode_seconds": 0.782500000030268,
+            "valid": 56,
+            "metadata": 1,
+            "duplicate": 43,
+            "accepted": 12
+          },
+          "1": {
+            "symbols": 56,
+            "decode_seconds": 0.7644999999756692,
+            "valid": 56,
+            "accepted": 12,
+            "duplicate": 44
+          }
+        },
+        "transfer": {
+          "schema": 1,
+          "state": "object_verified",
+          "transfer_id": "82acd65da2582a0a3fbd4dd8be692c9e",
+          "descriptor": {
+            "object_size": 66012,
+            "sha256": "9b1584e549a83a33a08a2383b06449007ceb55eccd7e093896eb4944af2ac4b2",
+            "chunk_size": 2800,
+            "total": 24,
+            "container": "7z-aes256",
+            "descriptor_version": 1,
+            "transport": "aqr2-repeat"
+          },
+          "received_chunks": 24,
+          "pending_packets": 0,
+          "received_bytes": 66012,
+          "counters": {
+            "metadata": 1,
+            "accepted": 24,
+            "duplicate": 87
+          },
+          "content_verified": true,
+          "encryption_verified": false,
+          "storage_schema": 1,
+          "committed_chunks": 24,
+          "missing_ranges": [],
+          "state_bytes": 243356
+        }
+      },
+      "decoder": {
+        "full_search_frames": 6,
+        "decode_seconds": 1.5470000000059372,
+        "cached_frames": 50
+      },
+      "player": {
+        "schema": 1,
+        "profile": "mono-safe",
+        "evidence_level": "browser_only",
+        "ready": true,
+        "running": false,
+        "disposed": false,
+        "transfer_id": "82acd65da2582a0a3fbd4dd8be692c9e",
+        "current_packet": 24,
+        "slot_packets": [
+          24,
+          23
+        ],
+        "slots": 2,
+        "requested_slots": 2,
+        "update_mode": "staggered",
+        "slot_updates": [
+          13,
+          12
+        ],
+        "slot_updates_per_second": [
+          2.343566908834618,
+          2.163292531231955
+        ],
+        "cursor": 25,
+        "cycle": 0,
+        "updates": 25,
+        "target_interval_ms": 400,
+        "actual_updates_per_second": 4.506859440066573,
+        "active_seconds": 5.54710000000149,
+        "recent_intervals_ms": [
+          216.70000000000005,
+          216.69999999999993,
+          216.60000000000014,
+          216.69999999999982,
+          216.70000000000005,
+          216.70000000000005,
+          216.70000000000005,
+          216.70000000000005,
+          216.5999999999999,
+          216.69999999999982,
+          216.80000000000018,
+          216.69999999999982,
+          216.60000000000036,
+          216.69999999999982,
+          216.69999999999982,
+          216.60000000000036,
+          216.59999999999945,
+          216.80000000000018,
+          216.60000000000036,
+          216.69999999999982,
+          216.80000000000018,
+          216.5,
+          216.80000000000018,
+          216.69999999999982
+        ],
+        "load_ms": 11.799999997019768,
+        "unique_frames": 25,
+        "cycle_frames": 28,
+        "cycle_seconds": 5.6,
+        "visibility": "visible",
+        "fullscreen": "ok",
+        "embedded": false,
+        "geometry": {
+          "viewport_css": [
+            1920,
+            1080
+          ],
+          "canvas_backing": [
+            1858,
+            925
+          ],
+          "canvas_css": [
+            1858,
+            925
+          ],
+          "canvas_origin_css": [
+            31,
+            101
+          ],
+          "device_pixel_ratio": 1,
+          "module_backing_px": 5,
+          "quiet_modules": 4,
+          "top_inset_css": 48,
+          "applied_top_inset_css": 48,
+          "host_pixels": "not_measured"
+        },
+        "events": [
+          {
+            "at_ms": 1.0999999940395355,
+            "type": "layout",
+            "slots": 2
+          },
+          {
+            "at_ms": 14.099999994039536,
+            "type": "ready"
+          },
+          {
+            "at_ms": 51.79999999701977,
+            "type": "mode",
+            "value": "staggered"
+          },
+          {
+            "at_ms": 254.59999999403954,
+            "type": "start"
+          }
+        ]
+      },
+      "restored_equal": true
+    }
+  ],
+  "storage_10mib": {
+    "encrypted_object_bytes": 10486749,
+    "seconds": 9.864907099996344,
+    "rss_first": 39923712,
+    "rss_peak": 46505984,
+    "checkpoints": [
+      {
+        "chunks": 1,
+        "rss": 40718336
+      },
+      {
+        "chunks": 1000,
+        "rss": 43106304
+      },
+      {
+        "chunks": 1000,
+        "rss": 43106304
+      },
+      {
+        "chunks": 2000,
+        "rss": 43347968
+      },
+      {
+        "chunks": 2000,
+        "rss": 43347968
+      },
+      {
+        "chunks": 3000,
+        "rss": 43384832
+      },
+      {
+        "chunks": 3000,
+        "rss": 43384832
+      }
+    ],
+    "snapshot": {
+      "schema": 1,
+      "state": "object_verified",
+      "transfer_id": "a7af8e83a3452d40792c88e8d739a2e1",
+      "descriptor": {
+        "object_size": 10486749,
+        "sha256": "17d6b0c4054e6ab7fc85262fecc9a2734e392c0f991bc37ffc9e96f0e45e221a",
+        "chunk_size": 2800,
+        "total": 3746,
+        "container": "7z-aes256",
+        "descriptor_version": 1,
+        "transport": "aqr2-repeat"
+      },
+      "received_chunks": 3746,
+      "pending_packets": 0,
+      "received_bytes": 10486749,
+      "counters": {
+        "metadata": 1,
+        "accepted": 3746,
+        "duplicate": 468
+      },
+      "content_verified": true,
+      "encryption_verified": false,
+      "storage_schema": 1,
+      "committed_chunks": 3746,
+      "missing_ranges": [],
+      "state_bytes": 36403478
+    },
+    "manifest_verified": true
+  },
+  "late_resize_resume": {
+    "ok": true,
+    "received_chunks": 24
+  },
+  "decoder_threads": {
+    "images": 30,
+    "serial_seconds": 2.429686800001946,
+    "two_threads_seconds": 1.2936656000019866,
+    "note": "Empirical concurrent decoding; shared immutable image, no process serialization."
+  },
+  "search_recovery": {
+    "ok": true,
+    "full_search_frames": 1,
+    "decode_seconds": 0.04799999999522697,
+    "cached_frames": 1
+  },
+  "pipeline_comparison": [
+    {
+      "threaded": false,
+      "capture": {
+        "schema": 1,
+        "termination": "total_timeout",
+        "exit_code": 2,
+        "elapsed_seconds": 2.0,
+        "frames_captured": 54,
+        "no_qr_frames": 0,
+        "capture_fps": 27.0,
+        "target_fps": 30,
+        "useful_bytes_per_second": 1400.0,
+        "first_timeout": 5,
+        "idle_timeout": 600,
+        "total_timeout": 2,
+        "rss_sampled_peak": 85274624,
+        "resumed": false,
+        "initial_bytes": 0,
+        "decode_seconds": 1.4840000000258442,
+        "no_progress_seconds": 1.9689999999973224,
+        "slots": {
+          "0": {
+            "symbols": 54,
+            "decode_seconds": 0.7175000000133878,
+            "valid": 54,
+            "metadata": 1,
+            "duplicate": 53
+          },
+          "1": {
+            "symbols": 54,
+            "decode_seconds": 0.7505000000091968,
+            "valid": 54,
+            "accepted": 1,
+            "duplicate": 53
+          }
+        },
+        "transfer": {
+          "schema": 1,
+          "state": "receiving",
+          "transfer_id": "82acd65da2582a0a3fbd4dd8be692c9e",
+          "descriptor": {
+            "object_size": 66012,
+            "sha256": "9b1584e549a83a33a08a2383b06449007ceb55eccd7e093896eb4944af2ac4b2",
+            "chunk_size": 2800,
+            "total": 24,
+            "container": "7z-aes256",
+            "descriptor_version": 1,
+            "transport": "aqr2-repeat"
+          },
+          "received_chunks": 1,
+          "pending_packets": 0,
+          "received_bytes": 2800,
+          "counters": {
+            "metadata": 1,
+            "accepted": 1,
+            "duplicate": 106
+          },
+          "content_verified": false,
+          "encryption_verified": false,
+          "storage_schema": 1,
+          "committed_chunks": 1,
+          "missing_ranges": [
+            [
+              1,
+              23
+            ]
+          ],
+          "state_bytes": 15823
+        }
+      },
+      "queue": {},
+      "decoder": {
+        "full_search_frames": 2,
+        "decode_seconds": 1.4840000000258442,
+        "cached_frames": 52
+      }
+    },
+    {
+      "threaded": true,
+      "capture": {
+        "schema": 1,
+        "termination": "total_timeout",
+        "exit_code": 2,
+        "elapsed_seconds": 2.0469999999986612,
+        "frames_captured": 61,
+        "no_qr_frames": 0,
+        "capture_fps": 29.79970688814846,
+        "target_fps": 30,
+        "useful_bytes_per_second": 1367.8553981445193,
+        "first_timeout": 5,
+        "idle_timeout": 600,
+        "total_timeout": 2,
+        "rss_sampled_peak": 96575488,
+        "resumed": false,
+        "initial_bytes": 0,
+        "decode_seconds": 1.1260000000038417,
+        "no_progress_seconds": 2.0159999999959837,
+        "slots": {
+          "0": {
+            "symbols": 61,
+            "decode_seconds": 0.3449999999975262,
+            "valid": 61,
+            "metadata": 1,
+            "duplicate": 60
+          },
+          "1": {
+            "symbols": 61,
+            "decode_seconds": 0.7810000000063155,
+            "valid": 61,
+            "accepted": 1,
+            "duplicate": 60
+          }
+        },
+        "transfer": {
+          "schema": 1,
+          "state": "receiving",
+          "transfer_id": "82acd65da2582a0a3fbd4dd8be692c9e",
+          "descriptor": {
+            "object_size": 66012,
+            "sha256": "9b1584e549a83a33a08a2383b06449007ceb55eccd7e093896eb4944af2ac4b2",
+            "chunk_size": 2800,
+            "total": 24,
+            "container": "7z-aes256",
+            "descriptor_version": 1,
+            "transport": "aqr2-repeat"
+          },
+          "received_chunks": 1,
+          "pending_packets": 0,
+          "received_bytes": 2800,
+          "counters": {
+            "metadata": 1,
+            "accepted": 1,
+            "duplicate": 120
+          },
+          "content_verified": false,
+          "encryption_verified": false,
+          "storage_schema": 1,
+          "committed_chunks": 1,
+          "missing_ranges": [
+            [
+              1,
+              23
+            ]
+          ],
+          "state_bytes": 15823
+        }
+      },
+      "queue": {
+        "capture_seconds": 0.3779999999969732,
+        "captured": 62,
+        "queue_peak": 1
+      },
+      "decoder": {
+        "full_search_frames": 3,
+        "decode_seconds": 1.1260000000038417,
+        "cached_frames": 58
+      }
+    }
+  ],
+  "ok": true,
+  "date": "2026-09-16",
+  "platform": "Windows",
+  "python": "3.12.10",
+  "packages": {
+    "mss": "10.2.0",
+    "zxing-cpp": "3.1.1",
+    "segno": "1.6.6",
+    "Pillow": "12.3.0",
+    "psutil": "7.2.2",
+    "py7zr": "1.1.3",
+    "playwright": "1.63.0"
+  },
+  "edge_cases": {
+    "schema": 1,
+    "ok": true,
+    "odd_last_group": [
+      {
+        "mode": "sync",
+        "dpr": 1,
+        "padding_metadata": true,
+        "verified": true
+      },
+      {
+        "mode": "sync",
+        "dpr": 1.25,
+        "padding_metadata": true,
+        "verified": true
+      },
+      {
+        "mode": "sync",
+        "dpr": 1.8,
+        "padding_metadata": true,
+        "verified": true
+      },
+      {
+        "mode": "staggered",
+        "dpr": 1,
+        "padding_metadata": true,
+        "verified": true
+      },
+      {
+        "mode": "staggered",
+        "dpr": 1.25,
+        "padding_metadata": true,
+        "verified": true
+      },
+      {
+        "mode": "staggered",
+        "dpr": 1.8,
+        "padding_metadata": true,
+        "verified": true
+      }
+    ]
+  },
+  "mono_regression_ok": true,
+  "unit_tests": {
+    "python_3_10_21": {
+      "passed": 71,
+      "seconds": 27.655
+    },
+    "python_3_12_10": {
+      "passed": 71,
+      "seconds": 18.958
+    }
+  }
+}

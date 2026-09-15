@@ -150,6 +150,8 @@ class Receiver:
             for index in range(self.descriptor.total):
                 with (self.directory / "chunks" / f"{index:08x}.bin").open("rb") as source:
                     target.write(source.read())
+            target.flush()
+            os.fsync(target.fileno())
         self.state = State.VERIFYING
         if part.stat().st_size != self.descriptor.object_size or sha256_file(part) != self.descriptor.sha256:
             self.state = State.ERROR

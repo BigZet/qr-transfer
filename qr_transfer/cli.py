@@ -6,6 +6,7 @@ from dataclasses import asdict
 import json
 from pathlib import Path
 import sys
+import sqlite3
 
 from .interfaces import State
 from .protocol import MAX_PACKET, ProtocolError, TransferDescriptor, decode
@@ -61,6 +62,8 @@ def main(argv=None):
     render.add_argument("--generator", choices=("segno", "qrcode"), default="segno")
     render.add_argument("--metadata-every", type=positive, default=8)
     render.add_argument("--interval-ms", type=positive, default=600)
+    render.add_argument("--slots", type=int, choices=(1,2), default=1)
+    render.add_argument("--update-mode", choices=("sync","staggered"), default="sync")
     render.add_argument("--external-only", action="store_true")
     render.add_argument("--estimate", action="store_true", help="Show size budget without generating frames")
     sub.add_parser("monitors", help="List capture monitor numbers")
@@ -71,6 +74,11 @@ def main(argv=None):
     capture.add_argument("--first-timeout", type=float, default=120)
     capture.add_argument("--idle-timeout", type=float, default=600)
     capture.add_argument("--total-timeout", type=float, default=0, help="0 means no overall timeout")
+    capture.add_argument("--resume", action="store_true", help="Resume an I04 transactional screen session")
+    capture.add_argument("--roi", type=int, nargs=4, metavar=("X","Y","W","H"), help="Monitor-relative physical pixels")
+    capture.add_argument("--sync", action="store_true", help="Benchmark synchronous capture/decode")
+    capture.add_argument("--queue-size", type=int, choices=(1,2), default=2)
+    capture.add_argument("--no-cache", action="store_true", help="Search the whole ROI on every frame")
     capture.add_argument("--extract-to", type=Path, help="After verification, prompt for password and extract")
     pack = sub.add_parser("pack", help="Create an encrypted 7z object; hidden password prompt")
     pack.add_argument("source", type=Path)
@@ -89,6 +97,7 @@ def main(argv=None):
         command.add_argument("--state", type=Path, required=True)
     inspect = sub.add_parser("inspect", help="Read saved status (does not reverify files)")
     inspect.add_argument("state", type=Path)
+    inspect.add_argument("--verify-state", action="store_true", help="Lock and rebuild I04 status from committed packets")
     packet = sub.add_parser("inspect-packet", help="Inspect one raw packet without printing payload")
     packet.add_argument("packet", type=Path)
     packet.add_argument("--legacy", action="store_true", help="Explicit AQR1: unencrypted legacy data")
@@ -109,13 +118,13 @@ def main(argv=None):
         if args.command == "render":
             from .player import estimate, render
             descriptor = read_descriptor(args.descriptor)
-            budget = estimate(descriptor, metadata_every=args.metadata_every, interval_ms=args.interval_ms)
+            budget = estimate(descriptor, metadata_every=args.metadata_every, interval_ms=args.interval_ms, slots=args.slots, update_mode=args.update_mode)
             print(json.dumps(budget), flush=True)
             if args.estimate:
                 return 0
             result = render(args.archive, descriptor, args.output, generator=args.generator,
                             metadata_every=args.metadata_every, interval_ms=args.interval_ms,
-                            standalone=not args.external_only,
+                            standalone=not args.external_only, slots=args.slots, update_mode=args.update_mode,
                             progress=lambda done, total: print(f"QR: {done}/{total}", file=sys.stderr, flush=True))
             print(json.dumps(result))
             return 0
@@ -128,11 +137,14 @@ def main(argv=None):
             def progress(value):
                 total = value["descriptor"]["total"] if value["descriptor"] else "?"
                 print(f"{value['state']}: {value['received_chunks']}/{total}; "
-                      f"{value['useful_bytes_per_second']:.0f} B/s; {value['capture_fps']:.1f} captures/s; "
-                      f"{value['counters']}", file=sys.stderr, flush=True)
+                      f"{value['useful_bytes_per_second']:.0f} B/s; {value['capture_fps']:.1f} processed/s; "
+                      f"committed={value.get('committed_chunks',0)}; {value['counters']}", file=sys.stderr, flush=True)
+                if value.get("no_progress_seconds",0) >= 10:
+                    print("No new data: check QR visibility, scale and ROI; waiting for repeat.", file=sys.stderr)
             result = receive_screen(args.state, monitor=args.monitor, fps=args.fps,
                                     first_timeout=args.first_timeout, idle_timeout=args.idle_timeout,
-                                    total_timeout=args.total_timeout, progress=progress)
+                                    total_timeout=args.total_timeout, progress=progress, resume=args.resume, roi=args.roi,
+                                    pipeline=not args.sync, queue_size=args.queue_size, cached=not args.no_cache)
             print(json.dumps(result))
             if result["exit_code"] == 0 and args.extract_to:
                 unpack_code = main(["unpack", str(args.state / "object.bin"), "--descriptor", str(args.state / "status.json"),
@@ -189,6 +201,11 @@ def main(argv=None):
         if args.command in ("receive", "resume"):
             return run_receive(args, resume=args.command == "resume")
         if args.command == "inspect":
+            if args.verify_state:
+                from .storage import DurableSession
+                with DurableSession(args.state, resume=True) as session:
+                    print(json.dumps(session.snapshot(), indent=2))
+                return 0
             print((args.state / "status.json").read_text(encoding="utf-8"))
             return 0
         if args.command == "inspect-packet":
@@ -227,7 +244,7 @@ def main(argv=None):
     except KeyboardInterrupt:
         print("Cancelled.", file=sys.stderr)
         return 130
-    except (OSError, ValueError, KeyError, IndexError, ImportError) as error:
+    except (OSError, ValueError, KeyError, IndexError, ImportError, sqlite3.Error) as error:
         # Don't print raw bytes, metadata, source names, or exception reprs.
         reason = getattr(error, "reason", type(error).__name__)
         print(f"Failed: {reason}", file=sys.stderr)
