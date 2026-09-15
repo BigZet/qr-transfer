@@ -48,32 +48,43 @@ def pack_matrix(rows) -> bytes:
     return bytes(packed)
 
 
-def estimate(descriptor: TransferDescriptor, *, metadata_every=8, interval_ms=600, slots=1, update_mode="sync"):
+def estimate(descriptor: TransferDescriptor, *, metadata_every=8, interval_ms=600, slots=1, update_mode="sync", transport="repeat", repair_factor=3, fec_mode="systematic"):
     descriptor.validate()
     if slots not in (1,2) or update_mode not in ("sync", "staggered"):
         raise ValueError("Invalid layout")
     if type(metadata_every) is not int or not 1 <= metadata_every <= 1024 or not 50 <= interval_ms <= 10000:
         raise ValueError("Invalid player timing")
-    count = descriptor.total + 1
+    data_count = descriptor.total
+    if transport == "lt":
+        from .fec import bootstrap
+        data_count = bootstrap(descriptor, repair_factor, fec_mode).symbols
+    elif transport != "repeat":
+        raise ValueError("Unknown transport")
+    count = data_count + 1
     size = HEADER.size + count * FRAME_BYTES
-    schedule_frames = descriptor.total + 1 + descriptor.total // metadata_every
+    schedule_frames = data_count + 1 + data_count // metadata_every
     schedule_frames += (-schedule_frames) % slots
     return {"slots": slots, "update_mode": update_mode, "unique_frames": count, "matrix_bytes": size, "base64_bytes": ((size + 2) // 3) * 4,
             "cycle_frames": schedule_frames, "cycle_seconds": schedule_frames * interval_ms / (1000 * slots),
-            "metadata_fraction": (schedule_frames - descriptor.total) / schedule_frames,
-            "external_supported": size <= MAX_MATRICES, "standalone_supported": size <= MAX_STANDALONE}
+            "metadata_fraction": (schedule_frames - data_count) / schedule_frames,
+            "external_supported": size <= (128 << 20 if transport == "lt" else MAX_MATRICES), "standalone_supported": size <= MAX_STANDALONE}
 
 
 def render(archive: Path, descriptor: TransferDescriptor, output: Path, *, generator="segno",
-           metadata_every=8, interval_ms=600, standalone=True, progress=None, slots=1, update_mode="sync"):
+           metadata_every=8, interval_ms=600, standalone=True, progress=None, slots=1, update_mode="sync", transport="repeat", repair_factor=3, fec_mode="systematic"):
     verify_object(archive, descriptor)
-    budget = estimate(descriptor, metadata_every=metadata_every, interval_ms=interval_ms, slots=slots, update_mode=update_mode)
+    budget = estimate(descriptor, metadata_every=metadata_every, interval_ms=interval_ms, slots=slots, update_mode=update_mode, transport=transport, repair_factor=repair_factor, fec_mode=fec_mode)
     if not budget["external_supported"] or (standalone and not budget["standalone_supported"]):
         raise ValueError("Player size limit; use external-only or a smaller object")
     if output.absolute().is_relative_to(archive.absolute()) or archive.absolute().is_relative_to(output.absolute()):
         raise ValueError("Output must be separate")
     output.mkdir(parents=True, exist_ok=False)
     transfer = prepare_object(archive, chunk_size=descriptor.chunk_size, container="7z-aes256")
+    if transport == "lt":
+        from .fec import bootstrap, pool
+        sequence = pool(archive, bootstrap(descriptor, repair_factor, fec_mode), transfer.transfer_id)
+    else:
+        sequence = packets(transfer, metadata_every=descriptor.total+1)
     started = time.perf_counter()
     try:
         path = output / "frames.bin"
@@ -83,7 +94,7 @@ def render(archive: Path, descriptor: TransferDescriptor, output: Path, *, gener
             target.write(header)
             crc = zlib.crc32(header)
             # Store metadata once; schedule repeats references in JS.
-            for index, raw in enumerate(packets(transfer, metadata_every=descriptor.total + 1)):
+            for index, raw in enumerate(sequence):
                 frame = pack_matrix(matrix(raw, generator))
                 target.write(frame)
                 crc = zlib.crc32(frame, crc)
@@ -92,7 +103,7 @@ def render(archive: Path, descriptor: TransferDescriptor, output: Path, *, gener
         if path.stat().st_size != budget["matrix_bytes"]:
             raise ValueError("Frame count mismatch")
         config = {"schema": 1, "profile": "mono-safe", "transfer_id": transfer.transfer_id.hex(),
-                  "descriptor": transfer.descriptor.__dict__, "interval_ms": interval_ms,
+                  "descriptor": transfer.descriptor.__dict__, "data_frames": budget["unique_frames"]-1, "transport":transport, "interval_ms": interval_ms,
                   "slots": slots, "update_mode": update_mode, "metadata_every": metadata_every, "matrix_bytes": budget["matrix_bytes"],
                   "matrix_crc32": crc & 0xffffffff}
         template = (ASSETS / "player.html").read_text(encoding="utf-8")
@@ -110,7 +121,7 @@ def render(archive: Path, descriptor: TransferDescriptor, output: Path, *, gener
                 for block in iter(lambda: source.read(3 * 16384), b""):
                     target.write(base64.b64encode(block).decode("ascii"))
                 target.write(after)
-        result = {"schema": 1, "generator": generator, "profile": "mono-safe", **budget,
+        result = {"schema": 1, "transport":transport, "repair_factor":repair_factor if transport=="lt" else None, "fec_mode":fec_mode if transport=="lt" else None, "generator": generator, "profile": "mono-safe", **budget,
                   "prepare_seconds": time.perf_counter() - started,
                   "standalone_created": standalone, "transfer_id": transfer.transfer_id.hex()}
         (output / "prepare.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")

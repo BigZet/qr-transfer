@@ -24,7 +24,7 @@ def validate_options(monitor, fps, first_timeout, idle_timeout, total_timeout):
 
 def receive_frames(directory: Path, grab, decoder, *, fps=12, first_timeout=120,
                    idle_timeout=600, total_timeout=0, clock=time.monotonic,
-                   sleep=time.sleep, progress=None, resume=False, paced=False):
+                   sleep=time.sleep, progress=None, resume=False, paced=False, transport="repeat"):
     validate_options(1, fps, first_timeout, idle_timeout, total_timeout)
     started = clock()
     frames = no_qr = 0
@@ -32,7 +32,14 @@ def receive_frames(directory: Path, grab, decoder, *, fps=12, first_timeout=120,
     last_new = last_report = started
     reason, code = "error", 1
     slots = defaultdict(Counter)
-    with DurableSession(directory, resume=resume) as session:
+    session_type = DurableSession
+    packet_decoder = decode
+    if transport == "lt":
+        from .fec import FecSession, decode as fec_decode
+        session_type, packet_decoder = FecSession, fec_decode
+    elif transport != "repeat":
+        raise ValueError("Unknown transport")
+    with session_type(directory, resume=resume) as session:
         receiver = session.receiver
         initial_bytes = receiver.received_bytes
         decode_seconds = 0.0
@@ -77,8 +84,8 @@ def receive_frames(directory: Path, grab, decoder, *, fps=12, first_timeout=120,
                     metrics['symbols'] += 1
                     metrics['decode_seconds'] += item.seconds
                     try:
-                        packet = decode(raw)
-                        if packet.kind == META and TransferDescriptor.from_bytes(packet.payload).container != '7z-aes256':
+                        packet = packet_decoder(raw)
+                        if transport == "repeat" and packet.kind == META and TransferDescriptor.from_bytes(packet.payload).container != '7z-aes256':
                             receiver.counters['wrong_container'] += 1
                             metrics['invalid'] += 1
                             continue
@@ -144,7 +151,7 @@ def monitors():
 
 def receive_screen(directory: Path, *, monitor=1, fps=12, first_timeout=120,
                    idle_timeout=600, total_timeout=0, progress=None, resume=False,
-                   roi=None, pipeline=True, queue_size=2, cached=True):
+                   roi=None, pipeline=True, queue_size=2, cached=True, transport="repeat"):
     validate_options(monitor, fps, first_timeout, idle_timeout, total_timeout)
     available = monitors()
     if monitor > len(available):
@@ -154,7 +161,7 @@ def receive_screen(directory: Path, *, monitor=1, fps=12, first_timeout=120,
     geometry = {}
     factory = lambda: screen_source(monitor, roi, geometry)
     options = dict(fps=fps, first_timeout=first_timeout, idle_timeout=idle_timeout,
-                   total_timeout=total_timeout, progress=progress, resume=resume)
+                   total_timeout=total_timeout, progress=progress, resume=resume, transport=transport)
     if pipeline:
         source = LatestFrames(factory, fps=fps, capacity=queue_size)
         try:

@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "evidence_level": "packet_storage_no_qr_no_vdi",
+  "object_bytes": 10486749,
+  "seconds": 55.619480399996974,
+  "rss_first": 23400448,
+  "rss_peak": 32206848,
+  "snapshot": {
+    "schema": 1,
+    "storage_schema": "lt1",
+    "transport": "aqr2-lt-v1",
+    "state": "object_verified",
+    "transfer_id": "bbe5592af0bdfb508153e8887a52b1e2",
+    "descriptor": {
+      "object_size": 10486749,
+      "sha256": "17d6b0c4054e6ab7fc85262fecc9a2734e392c0f991bc37ffc9e96f0e45e221a",
+      "chunk_size": 2800,
+      "total": 3746,
+      "container": "7z-aes256",
+      "descriptor_version": 1,
+      "transport": "aqr2-repeat"
+    },
+    "fec": {
+      "object": {
+        "chunk_size": 2800,
+        "container": "7z-aes256",
+        "descriptor_version": 1,
+        "object_size": 10486749,
+        "sha256": "17d6b0c4054e6ab7fc85262fecc9a2734e392c0f991bc37ffc9e96f0e45e221a",
+        "total": 3746,
+        "transport": "aqr2-repeat"
+      },
+      "k": 32,
+      "repair_factor": 3,
+      "mode": "systematic",
+      "scheme": "lt-code-0.3-v1",
+      "symbol_size": 2800
+    },
+    "received_chunks": 14541,
+    "committed_chunks": 14541,
+    "accepted_symbols": 14541,
+    "restored_blocks": 119,
+    "total_blocks": 119,
+    "received_bytes": 10486749,
+    "pending_packets": 0,
+    "counters": {
+      "metadata": 1,
+      "source_symbols": 3789,
+      "accepted": 14541,
+      "repair_symbols": 10752
+    },
+    "content_verified": true,
+    "encryption_verified": false,
+    "resume_seconds": 0.006089699993026443,
+    "state_bytes": 80902678,
+    "missing_ranges": null,
+    "progress_note": "Symbols are not independent; no exact remaining-symbol count."
+  },
+  "resume_seconds": 1.4255261000071187
+}

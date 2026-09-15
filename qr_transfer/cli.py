@@ -62,6 +62,9 @@ def main(argv=None):
     render.add_argument("--generator", choices=("segno", "qrcode"), default="segno")
     render.add_argument("--metadata-every", type=positive, default=8)
     render.add_argument("--interval-ms", type=positive, default=600)
+    render.add_argument("--transport", choices=("repeat","lt"), default="repeat")
+    render.add_argument("--repair-factor", type=int, choices=(1,2,3), default=3)
+    render.add_argument("--fec-mode", choices=("systematic","repair-only"), default="systematic")
     render.add_argument("--slots", type=int, choices=(1,2), default=1)
     render.add_argument("--update-mode", choices=("sync","staggered"), default="sync")
     render.add_argument("--external-only", action="store_true")
@@ -74,6 +77,7 @@ def main(argv=None):
     capture.add_argument("--first-timeout", type=float, default=120)
     capture.add_argument("--idle-timeout", type=float, default=600)
     capture.add_argument("--total-timeout", type=float, default=0, help="0 means no overall timeout")
+    capture.add_argument("--transport", choices=("repeat","lt"), default="repeat")
     capture.add_argument("--resume", action="store_true", help="Resume an I04 transactional screen session")
     capture.add_argument("--roi", type=int, nargs=4, metavar=("X","Y","W","H"), help="Monitor-relative physical pixels")
     capture.add_argument("--sync", action="store_true", help="Benchmark synchronous capture/decode")
@@ -118,13 +122,14 @@ def main(argv=None):
         if args.command == "render":
             from .player import estimate, render
             descriptor = read_descriptor(args.descriptor)
-            budget = estimate(descriptor, metadata_every=args.metadata_every, interval_ms=args.interval_ms, slots=args.slots, update_mode=args.update_mode)
+            budget = estimate(descriptor, metadata_every=args.metadata_every, interval_ms=args.interval_ms, slots=args.slots, update_mode=args.update_mode, transport=args.transport, repair_factor=args.repair_factor, fec_mode=args.fec_mode)
             print(json.dumps(budget), flush=True)
             if args.estimate:
                 return 0
             result = render(args.archive, descriptor, args.output, generator=args.generator,
                             metadata_every=args.metadata_every, interval_ms=args.interval_ms,
                             standalone=not args.external_only, slots=args.slots, update_mode=args.update_mode,
+                            transport=args.transport, repair_factor=args.repair_factor, fec_mode=args.fec_mode,
                             progress=lambda done, total: print(f"QR: {done}/{total}", file=sys.stderr, flush=True))
             print(json.dumps(result))
             return 0
@@ -136,6 +141,8 @@ def main(argv=None):
             from .capture import receive_screen
             def progress(value):
                 total = value["descriptor"]["total"] if value["descriptor"] else "?"
+                if value.get("transport") == "aqr2-lt-v1":
+                    total = f"? symbols; blocks={value['restored_blocks']}/{value['total_blocks']}"
                 print(f"{value['state']}: {value['received_chunks']}/{total}; "
                       f"{value['useful_bytes_per_second']:.0f} B/s; {value['capture_fps']:.1f} processed/s; "
                       f"committed={value.get('committed_chunks',0)}; {value['counters']}", file=sys.stderr, flush=True)
@@ -144,7 +151,7 @@ def main(argv=None):
             result = receive_screen(args.state, monitor=args.monitor, fps=args.fps,
                                     first_timeout=args.first_timeout, idle_timeout=args.idle_timeout,
                                     total_timeout=args.total_timeout, progress=progress, resume=args.resume, roi=args.roi,
-                                    pipeline=not args.sync, queue_size=args.queue_size, cached=not args.no_cache)
+                                    pipeline=not args.sync, queue_size=args.queue_size, cached=not args.no_cache, transport=args.transport)
             print(json.dumps(result))
             if result["exit_code"] == 0 and args.extract_to:
                 unpack_code = main(["unpack", str(args.state / "object.bin"), "--descriptor", str(args.state / "status.json"),
@@ -203,6 +210,8 @@ def main(argv=None):
         if args.command == "inspect":
             if args.verify_state:
                 from .storage import DurableSession
+                if (args.state / "fec.sqlite3").exists():
+                    from .fec import FecSession as DurableSession
                 with DurableSession(args.state, resume=True) as session:
                     print(json.dumps(session.snapshot(), indent=2))
                 return 0

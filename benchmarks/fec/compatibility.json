@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "date": "2026-09-16",
+  "raptorq": {
+    "version": "2.0.0",
+    "source": "https://pypi.org/project/raptorq/2.0.0/",
+    "public_windows_wheel": false,
+    "linux_wheel": "cp37-abi3-manylinux_2_17_x86_64",
+    "attempt": "uv pip install --python .venv-i00/Scripts/python.exe raptorq==2.0.0",
+    "result": "build_failed",
+    "error": "error: linker link.exe not found; MSVC toolchain prerequisites missing",
+    "encode_decode": "not_available"
+  },
+  "wirehair": {
+    "source": "https://github.com/catid/wirehair",
+    "attempt": "uv pip install --target artifacts/i05/candidates/wirehair wirehair-fec",
+    "result": "package_not_found_in_registry",
+    "native_library": "not_installed",
+    "encode_decode": "not_available"
+  },
+  "lt_code": {
+    "version": "0.3",
+    "source": "https://pypi.org/project/lt-code/0.3/",
+    "sdist_sha256": "e90a28026c972e60b3a51933c492bf8aa28b6eeca2ec83bdf5619a199518b069",
+    "locally_built_wheel": "lt_code-0.3-py3-none-any.whl",
+    "local_wheel_sha256": "19bd2a6d6e662a62c8e3e087f3e33d4c8ea7dfcbf81c794d64a4def6302e0ea1",
+    "python_tested": [
+      "3.10.21 Windows x64",
+      "3.12.10 Windows x64"
+    ],
+    "random_binary_roundtrip": true,
+    "linux_runtime": "not_tested",
+    "internal_pypi": "not_tested"
+  }
+}

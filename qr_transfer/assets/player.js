@@ -10,7 +10,7 @@
   let raf = null, next = 0, updates = 0, cycles = 0, activeSince = null, activeMs = 0, lastShown = null;
   let intervals = [], modulePx = 0, loadMs = null, lastReport = 0, fullscreenResult = "not_tested";
   let slots = 1, shown = [0], baseSequence = [], nextSlot = 0, slotUpdates = [0,0];
-  const gap = 8, stride = 3917;
+  const gap = 8, stride = 3917, dataFrames = config.data_frames ?? config.descriptor.total;
   $("slots").value = config.slots || 1; $("mode").value = config.update_mode || "sync";
   $("interval").value = config.interval_ms;
   function on(target, name, callback) { target.addEventListener(name, callback); listeners.push(() => target.removeEventListener(name, callback)); }
@@ -26,12 +26,12 @@
   }
   function snapshot() {
     const rect = canvas.getBoundingClientRect(), seconds = (activeMs + (activeSince === null ? 0 : performance.now() - activeSince)) / 1000;
-    return {schema:1, profile:"mono-safe", evidence_level:"browser_only", ready, running, disposed,
+    return {schema:1, profile:"mono-safe", transport:config.transport || "repeat", evidence_level:"browser_only", ready, running, disposed,
       transfer_id:config.transfer_id, current_packet:shown[0] ?? null, slot_packets:shown.slice(), slots, requested_slots:Number($("slots").value),
       update_mode:$("mode").value, slot_updates:slotUpdates.slice(0,slots),
       slot_updates_per_second:slotUpdates.slice(0,slots).map(n=>seconds>0?n/seconds:0), cursor, cycle:cycles, updates,
       target_interval_ms:interval(), actual_updates_per_second:seconds > 0 ? updates / seconds : 0,
-      active_seconds:seconds, recent_intervals_ms:intervals.slice(), load_ms:loadMs, unique_frames:config.descriptor.total + 1,
+      active_seconds:seconds, recent_intervals_ms:intervals.slice(), load_ms:loadMs, unique_frames:dataFrames + 1,
       cycle_frames:sequence.length, cycle_seconds:sequence.length * interval() / (1000 * slots),
       visibility:document.visibilityState, fullscreen:fullscreenResult, embedded:window.self !== window.top,
       geometry:{viewport_css:[innerWidth,innerHeight], canvas_backing:[canvas.width,canvas.height],
@@ -157,9 +157,9 @@
   }
   async function load() {
     try {
-      if (config.schema !== 1 || !Number.isInteger(config.descriptor.total) || config.descriptor.total < 1 ||
+      if (config.schema !== 1 || !Number.isInteger(dataFrames) || dataFrames < 1 ||
           !Number.isInteger(config.metadata_every) || config.metadata_every < 1 || config.metadata_every > 1024 ||
-          config.interval_ms < 50 || config.interval_ms > 10000 || !Number.isInteger(config.matrix_bytes) || config.matrix_bytes < 12 || config.matrix_bytes > 33554432) throw Error("config");
+          config.interval_ms < 50 || config.interval_ms > 10000 || !Number.isInteger(config.matrix_bytes) || config.matrix_bytes < 12 || config.matrix_bytes > (config.transport === "lt" ? 134217728 : 33554432)) throw Error("config");
       const embedded = $("data").textContent.trim();
       if (embedded) {
         if (embedded.length !== Math.ceil(config.matrix_bytes / 3) * 4) throw Error("length");
@@ -181,9 +181,9 @@
       if (bytes.length !== config.matrix_bytes || bytes.length < 12 || crc32(bytes) !== config.matrix_crc32) throw Error("integrity");
       const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
       if (view.getUint32(0) !== 0x51524d31 || view.getUint16(4) !== 177 || view.getUint16(6) !== 4 ||
-          view.getUint32(8) !== config.descriptor.total + 1 || bytes.length !== 12 + view.getUint32(8) * stride) throw Error("layout");
+          view.getUint32(8) !== dataFrames + 1 || bytes.length !== 12 + view.getUint32(8) * stride) throw Error("layout");
       baseSequence.push(0);
-      for (let i = 1; i <= config.descriptor.total; i++) { baseSequence.push(i); if (i % config.metadata_every === 0) baseSequence.push(0); }
+      for (let i = 1; i <= dataFrames; i++) { baseSequence.push(i); if (i % config.metadata_every === 0) baseSequence.push(0); }
       layoutSchedule();
       ready = true; loadMs = performance.now() - started;
       $("status").textContent = "Архив загружен. Запустите приёмник на хосте, затем нажмите Старт. Space — пауза, Esc — выход из полного экрана.";
