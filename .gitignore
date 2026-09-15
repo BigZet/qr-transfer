@@ -209,6 +209,10 @@ tempCodeRunnerFile.py
 # PyPI configuration file
 .pypirc
 
+# Iteration 00 local environments and generated diagnostic data
+.venv-i00/
+artifacts/
+
 # Marimo
 marimo/_static/
 marimo/_lsp/

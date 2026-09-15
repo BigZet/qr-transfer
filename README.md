@@ -13,3 +13,15 @@
 [Отдельный эксперимент на VDI: сохранность 2/4/8 цветов, геометрия и частота](docs/experiments/01-vdi-color-channel.md).
 
 Текущий прототип: `code.py` — генерация QR и HTML; `qr.py` — приём с экрана.
+
+## Итерация 00
+
+Готовы диагностика среды, браузерная тестовая страница и контрольный стенд. [Инструкция запуска в JupyterHub и на Windows](docs/usage/iteration-00.md), [результаты локальных проверок](docs/reports/environment.md).
+
+Первый шаг в терминале JupyterHub, без сторонних зависимостей:
+
+```bash
+python3.10 tools/i00.py probe --role jupyterhub --output artifacts/i00/jupyter-before.json
+```
+
+Итерация остаётся открытой до проверки реального JupyterHub и передачи через VDI.

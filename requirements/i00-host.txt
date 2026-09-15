@@ -1,0 +1,4 @@
+-r i00-sender.txt
+mss>=9,<11
+zxing-cpp>=2.2,<4
+psutil>=5.9,<8

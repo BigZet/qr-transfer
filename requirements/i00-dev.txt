@@ -1,0 +1,2 @@
+-r i00-host.txt
+playwright>=1.45,<2

@@ -1,0 +1,8 @@
+# Observed local baseline, 2026-09-15. Not a lock for the unknown JupyterHub mirror.
+# Install with: pip install -r requirements/i00-host.txt -c requirements/i00-local-windows-py312.txt
+qrcode==8.2
+Pillow==12.3.0
+mss==10.2.0
+zxing-cpp==3.1.1
+psutil==7.2.2
+colorama==0.4.6

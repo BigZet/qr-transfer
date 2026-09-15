@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>QR Transfer · диагностика И00</title>
+  <style>
+    :root { color-scheme: dark; font: 15px/1.5 system-ui, sans-serif; background: #111827; color: #e5edf7; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px; }
+    main { max-width: 1280px; margin: auto; }
+    h1 { margin: 0 0 8px; font-size: clamp(22px, 3vw, 34px); }
+    h2 { margin: 0 0 12px; font-size: 18px; }
+    p { color: #b9c7dc; margin: 8px 0 16px; }
+    .badge { color: #82cfff; font: 13px monospace; letter-spacing: 1px; }
+    .panel { background: #1c283b; border: 1px solid #344359; border-radius: 12px; padding: 18px; margin: 16px 0; }
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    button, select { font: inherit; padding: 8px 14px; border-radius: 7px; background: #2b3b53; color: #fff; border: 1px solid #62738c; }
+    button { cursor: pointer; } button:hover { background: #3b506f; } button:focus-visible { outline: 3px solid #82cfff; }
+    #start { background: #116e9b; }
+    #stage { padding: 0; background: white; height: 52vh; min-height: 200px; position: relative; overflow: hidden; }
+    #stage:fullscreen { width: 100vw; height: 100vh; border: 0; border-radius: 0; }
+    canvas { display: block; width: 100%; height: 100%; }
+    #overlay { position: absolute; right: 8px; bottom: 8px; padding: 5px 9px; background: #ffffffed; color: #111; font: 13px monospace; }
+    .columns { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 16px; }
+    dl { margin: 0; } dt { color: #b9c7dc; } dd { margin: 0 0 10px; overflow-wrap: anywhere; font-family: monospace; }
+    pre, textarea { width: 100%; color: #d6eaff; background: #0c1524; border: 1px solid #435269; padding: 12px; border-radius: 8px; }
+    pre { max-height: 420px; overflow: auto; font-size: 12px; white-space: pre-wrap; }
+    textarea { min-height: 110px; font-size: 12px; }
+    .pending { color: #ffd88d; }
+  </style>
+</head>
+<body><main>
+  <div class="badge">QR TRANSFER / ИТЕРАЦИЯ 00</div>
+  <h1>Проверка браузера и экрана</h1>
+  <p>Локальная диагностическая страница для JupyterHub. Клетки и цвета — тестовый рисунок; скорость передачи файлов здесь не измеряется.</p>
+  <section class="panel">
+    <div id="boot" class="pending">Основной JavaScript ещё не выполнен. Если сообщение остаётся, проверьте способ открытия HTML и политику страницы.</div>
+    <div id="inline-status" class="pending">Встроенный JavaScript: не выполнен.</div>
+    <noscript><p>JavaScript отключён в браузере.</p></noscript>
+  </section>
+  <div class="controls">
+    <button id="start" type="button">Старт</button>
+    <button id="pause" type="button">Пауза</button>
+    <button id="step" type="button">Один кадр</button>
+    <button id="reset" type="button">Сброс</button>
+    <label>Частота <select id="rate"><option>2</option><option selected>5</option><option>10</option><option>15</option><option>30</option><option>60</option></select> Гц</label>
+    <label>Клетка <select id="cell"><option>2</option><option>3</option><option>4</option><option selected>5</option><option>6</option><option>8</option></select> px Canvas</label>
+    <button id="fullscreen" type="button">Полный экран</button>
+  </div>
+  <section id="stage" class="panel" aria-label="Тестовый рисунок">
+    <canvas id="canvas" aria-label="Контрастная сетка и восемь цветовых полей"></canvas>
+    <div id="overlay">Кадр 0 · Space: пауза · Esc: выйти</div>
+  </section>
+  <div class="columns">
+    <section class="panel"><h2>Среда браузера</h2><dl id="features"></dl></section>
+    <section class="panel"><h2>Геометрия и время</h2><dl id="geometry"></dl>
+      <p>Canvas px, CSS px и пиксели снимка хоста могут различаться. Размер на хосте проверяется захватом отдельно.</p>
+    </section>
+  </div>
+  <section class="panel">
+    <h2>Отчёт</h2>
+    <label>Как открыта страница <select id="route"><option value="unknown">Не указано</option><option value="jupyter-file-route">Файловый маршрут JupyterHub</option><option value="jupyter-embedded">Встроенный вывод JupyterHub</option><option value="vdi-local-file">Локальный HTML на VDI</option><option value="host-local">Локальный тест на хосте</option></select></label>
+    <p>Полный адрес страницы, query-параметры и токены в отчёт не записываются. Скопируйте текст или сохраните JSON в среде, где открыт браузер.</p>
+    <div class="controls"><button id="refresh" type="button">Обновить отчёт</button><button id="download" type="button">Сохранить JSON</button></div>
+    <pre id="report">Отчёт появится после запуска JavaScript.</pre>
+    <textarea id="report-text" readonly aria-label="JSON для ручного копирования"></textarea>
+  </section>
+</main>
+<script>
+  window.I00_INLINE = true;
+  document.getElementById("inline-status").textContent = "Встроенный JavaScript: выполнен.";
+</script>
+<script src="diagnostic.js"></script>
+</body>
+</html>

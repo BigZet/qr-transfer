@@ -1,0 +1,560 @@
+{
+  "schema": 1,
+  "date": "2026-09-15",
+  "scope": "local Windows only; real JupyterHub and VDI pending",
+  "host": {
+    "python": "3.12.10",
+    "system": "Windows",
+    "machine": "AMD64",
+    "package_versions": {
+      "qrcode": "8.2",
+      "Pillow": "12.3.0",
+      "mss": "10.2.0",
+      "zxing-cpp": "3.1.1",
+      "psutil": "7.2.2"
+    },
+    "capture": {
+      "status": "ok",
+      "monitors": [
+        {
+          "left": -1920,
+          "top": 0,
+          "width": 5760,
+          "height": 2160
+        },
+        {
+          "left": 0,
+          "top": 0,
+          "width": 3840,
+          "height": 2160
+        },
+        {
+          "left": -1920,
+          "top": 589,
+          "width": 1920,
+          "height": 1080
+        }
+      ],
+      "selected": 2,
+      "captured_size": [
+        1920,
+        1080
+      ],
+      "grab_seconds": [
+        0.03401790000498295,
+        0.02847029999975348,
+        0.017211599995789584
+      ],
+      "pixels_saved": false,
+      "vdi_color_preservation": "not_checked"
+    }
+  },
+  "preparation": {
+    "schema": 1,
+    "created_utc": "2026-09-15T18:50:11.213080+00:00",
+    "evidence_level": "legacy_preparation_only",
+    "python": "3.12.10",
+    "system": "Windows",
+    "machine": "AMD64",
+    "source_sha256": {
+      "code.py": "09b4f4756658cc18ad12365fcc054725352d37e1af3b29872cadc63b31425da0",
+      "qr.py": "4cacb479a6d8ad1290c8a79ec46192da7bef903635de1b0292990322edac7bf6",
+      "tools/i00.py": "2f8ab27f227bcc55cbc64fb53259d12ff1d0dab58efdff9ff216f8bd05df7023"
+    },
+    "package_versions": {
+      "qrcode": "8.2",
+      "Pillow": "12.3.0",
+      "mss": "10.2.0",
+      "zxing-cpp": "3.1.1",
+      "psutil": "7.2.2"
+    },
+    "fixture": {
+      "schema": 1,
+      "seed": "qr-transfer-i00-v1",
+      "size_kib": 64
+    },
+    "settings": {
+      "interval_ms": 600,
+      "box_size": 6,
+      "chunk_size": 2800,
+      "qr": "V40-L",
+      "protocol": "AQR1"
+    },
+    "cases": {
+      "binary": {
+        "returncode": 0,
+        "wall_seconds": 4.996197699998447,
+        "sampled_peak_rss_bytes": 34447360,
+        "rss_sampling_seconds": 0.02,
+        "termination": null,
+        "memory_scope": "process tree RSS sum, sampled; shared pages may be counted more than once",
+        "ok": true,
+        "html_bytes": 701894,
+        "html_sha256": "0b86cff910875318d34c70cc613c7b3baf3e0021b39476082b05e651a1d30c3b",
+        "display_frames": 27
+      },
+      "tree": {
+        "returncode": 0,
+        "wall_seconds": 5.172294399999373,
+        "sampled_peak_rss_bytes": 94502912,
+        "rss_sampling_seconds": 0.02,
+        "termination": null,
+        "memory_scope": "process tree RSS sum, sampled; shared pages may be counted more than once",
+        "ok": true,
+        "html_bytes": 702542,
+        "html_sha256": "c816444d4af7beea1397bd7b8e6a7b993abc7a77e6e6b144f42d33a9dd9c68af",
+        "display_frames": 27
+      }
+    }
+  },
+  "png_roundtrip": {
+    "schema": 1,
+    "created_utc": "2026-09-15T18:41:24.368790+00:00",
+    "evidence_level": "synthetic_png_roundtrip_no_browser_no_vdi",
+    "python": "3.12.10",
+    "system": "Windows",
+    "machine": "AMD64",
+    "source_sha256": {
+      "code.py": "09b4f4756658cc18ad12365fcc054725352d37e1af3b29872cadc63b31425da0",
+      "qr.py": "4cacb479a6d8ad1290c8a79ec46192da7bef903635de1b0292990322edac7bf6",
+      "tools/i00.py": "300e50b22ff18b5ddb0b3f3f270e98ac5c0e2f1539aba360fb297d95a432306c"
+    },
+    "runs": [
+      {
+        "case": "binary",
+        "run": 1,
+        "ok": true,
+        "png_frames": 27,
+        "received": {
+          "size": 65536,
+          "sha256": "b534aa85a81fcc6e37ba848aa55becb54b49639dac24b0d7ebc687419eb52eba"
+        },
+        "transport_bytes": 65536,
+        "unique_chunks": 24,
+        "decode_verify_seconds": 0.4290541000009398
+      },
+      {
+        "case": "binary",
+        "run": 2,
+        "ok": true,
+        "png_frames": 27,
+        "received": {
+          "size": 65536,
+          "sha256": "b534aa85a81fcc6e37ba848aa55becb54b49639dac24b0d7ebc687419eb52eba"
+        },
+        "transport_bytes": 65536,
+        "unique_chunks": 24,
+        "decode_verify_seconds": 0.41475209999771323
+      },
+      {
+        "case": "binary",
+        "run": 3,
+        "ok": true,
+        "png_frames": 27,
+        "received": {
+          "size": 65536,
+          "sha256": "b534aa85a81fcc6e37ba848aa55becb54b49639dac24b0d7ebc687419eb52eba"
+        },
+        "transport_bytes": 65536,
+        "unique_chunks": 24,
+        "decode_verify_seconds": 0.42270479999569943
+      },
+      {
+        "case": "tree",
+        "run": 1,
+        "ok": true,
+        "png_frames": 27,
+        "received": {
+          "files": 3,
+          "directories": 3,
+          "source_bytes": 65612,
+          "archive": {
+            "size": 66940,
+            "sha256": "598933e8b81621e0fa4f9c71013e4c845f8e643ce0a78e7e15f6bdc0214767df"
+          },
+          "extracted": false
+        },
+        "transport_bytes": 66940,
+        "unique_chunks": 24,
+        "decode_verify_seconds": 0.40533220000361325
+      },
+      {
+        "case": "tree",
+        "run": 2,
+        "ok": true,
+        "png_frames": 27,
+        "received": {
+          "files": 3,
+          "directories": 3,
+          "source_bytes": 65612,
+          "archive": {
+            "size": 66940,
+            "sha256": "598933e8b81621e0fa4f9c71013e4c845f8e643ce0a78e7e15f6bdc0214767df"
+          },
+          "extracted": false
+        },
+        "transport_bytes": 66940,
+        "unique_chunks": 24,
+        "decode_verify_seconds": 0.3875851999982842
+      },
+      {
+        "case": "tree",
+        "run": 3,
+        "ok": true,
+        "png_frames": 27,
+        "received": {
+          "files": 3,
+          "directories": 3,
+          "source_bytes": 65612,
+          "archive": {
+            "size": 66940,
+            "sha256": "598933e8b81621e0fa4f9c71013e4c845f8e643ce0a78e7e15f6bdc0214767df"
+          },
+          "extracted": false
+        },
+        "transport_bytes": 66940,
+        "unique_chunks": 24,
+        "decode_verify_seconds": 0.37782570000126725
+      }
+    ]
+  },
+  "browser": {
+    "schema": 1,
+    "created_utc": "2026-09-15T18:49:23.880529+00:00",
+    "evidence_level": "headless_local_browser_no_vdi",
+    "python": "3.12.10",
+    "system": "Windows",
+    "machine": "AMD64",
+    "source_sha256": {
+      "code.py": "09b4f4756658cc18ad12365fcc054725352d37e1af3b29872cadc63b31425da0",
+      "qr.py": "4cacb479a6d8ad1290c8a79ec46192da7bef903635de1b0292990322edac7bf6",
+      "tools/i00.py": "2f8ab27f227bcc55cbc64fb53259d12ff1d0dab58efdff9ff216f8bd05df7023"
+    },
+    "package_versions": {
+      "qrcode": "8.2",
+      "Pillow": "12.3.0",
+      "mss": "10.2.0",
+      "zxing-cpp": "3.1.1",
+      "psutil": "7.2.2"
+    },
+    "checks": [
+      "offline assets, inline/external JS, JSON, worker, WASM; URL redaction",
+      "start idempotent; pause stable; step advances once",
+      "resize, reset; fullscreen outcome recorded"
+    ],
+    "fullscreen_result": "ok",
+    "browser": {
+      "schema": 1,
+      "diagnostic": "i00-browser-v1",
+      "evidence_level": "browser_only",
+      "created_utc": "2026-09-15T18:49:27.389Z",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "route_declared": "unknown",
+      "url_protocol": "http:",
+      "embedded": false,
+      "secure_context": true,
+      "cross_origin_isolated": false,
+      "visibility": "visible",
+      "features": {
+        "inline_script": "ok",
+        "external_script": "ok",
+        "relative_json_fetch": "ok",
+        "worker": "ok",
+        "wasm": "ok",
+        "fullscreen": "ok",
+        "canvas": "ok"
+      },
+      "geometry": {
+        "css_viewport": [
+          1280,
+          720
+        ],
+        "css_canvas": [
+          1230,
+          372.390625
+        ],
+        "canvas_backing": [
+          1230,
+          372
+        ],
+        "device_pixel_ratio": 1,
+        "screen_css": [
+          1280,
+          720
+        ],
+        "visual_viewport_scale": 1,
+        "cell_backing_px": 3,
+        "host_captured_pixels": "not_measured"
+      },
+      "playback": {
+        "running": false,
+        "frame": 0,
+        "target_updates_per_second": 5,
+        "updates": 0,
+        "active_seconds_including_hidden": 0,
+        "actual_updates_per_second": 0,
+        "recent_render_intervals_ms": []
+      },
+      "events": [
+        {
+          "at_ms": 25,
+          "type": "resize",
+          "backing": [
+            1278,
+            560
+          ]
+        },
+        {
+          "at_ms": 105,
+          "type": "feature_checks_complete"
+        },
+        {
+          "at_ms": 317,
+          "type": "start"
+        },
+        {
+          "at_ms": 1631,
+          "type": "pause"
+        },
+        {
+          "at_ms": 1965,
+          "type": "pause"
+        },
+        {
+          "at_ms": 1983,
+          "type": "cell",
+          "value": 3
+        },
+        {
+          "at_ms": 2011,
+          "type": "resize",
+          "backing": [
+            1230,
+            372
+          ]
+        },
+        {
+          "at_ms": 2145,
+          "type": "fullscreen",
+          "active": true
+        },
+        {
+          "at_ms": 2145,
+          "type": "resize",
+          "backing": [
+            1280,
+            720
+          ]
+        },
+        {
+          "at_ms": 2351,
+          "type": "fullscreen",
+          "active": false
+        },
+        {
+          "at_ms": 2352,
+          "type": "resize",
+          "backing": [
+            1230,
+            372
+          ]
+        },
+        {
+          "at_ms": 2379,
+          "type": "pause"
+        },
+        {
+          "at_ms": 2381,
+          "type": "reset"
+        }
+      ],
+      "limitations": [
+        "No host capture or VDI color measurement is performed by this page.",
+        "Reported updates are browser render calls, not confirmed VDI frames.",
+        "WASM check compiles an empty module; real codec/workers require a separate test.",
+        "CSP events can be incomplete; not_executed does not identify the cause by itself."
+      ]
+    },
+    "browser_version": "153.0.8010.37",
+    "legacy_browser_runs": [
+      {
+        "case": "binary",
+        "run": 1,
+        "ok": true,
+        "frames": 27,
+        "decode_verify_seconds": 2.4440735000025597,
+        "viewport": [
+          1920,
+          1080
+        ],
+        "qr_css_size": {
+          "x": 474,
+          "y": 54,
+          "width": 972,
+          "height": 972
+        },
+        "received": {
+          "size": 65536,
+          "sha256": "b534aa85a81fcc6e37ba848aa55becb54b49639dac24b0d7ebc687419eb52eba"
+        },
+        "playback": "manually stepped; not 600ms throughput"
+      },
+      {
+        "case": "binary",
+        "run": 2,
+        "ok": true,
+        "frames": 27,
+        "decode_verify_seconds": 2.445086200001242,
+        "viewport": [
+          1920,
+          1080
+        ],
+        "qr_css_size": {
+          "x": 474,
+          "y": 54,
+          "width": 972,
+          "height": 972
+        },
+        "received": {
+          "size": 65536,
+          "sha256": "b534aa85a81fcc6e37ba848aa55becb54b49639dac24b0d7ebc687419eb52eba"
+        },
+        "playback": "manually stepped; not 600ms throughput"
+      },
+      {
+        "case": "binary",
+        "run": 3,
+        "ok": true,
+        "frames": 27,
+        "decode_verify_seconds": 2.3498045000014827,
+        "viewport": [
+          1920,
+          1080
+        ],
+        "qr_css_size": {
+          "x": 474,
+          "y": 54,
+          "width": 972,
+          "height": 972
+        },
+        "received": {
+          "size": 65536,
+          "sha256": "b534aa85a81fcc6e37ba848aa55becb54b49639dac24b0d7ebc687419eb52eba"
+        },
+        "playback": "manually stepped; not 600ms throughput"
+      },
+      {
+        "case": "tree",
+        "run": 1,
+        "ok": true,
+        "frames": 27,
+        "decode_verify_seconds": 2.353878000001714,
+        "viewport": [
+          1920,
+          1080
+        ],
+        "qr_css_size": {
+          "x": 474,
+          "y": 54,
+          "width": 972,
+          "height": 972
+        },
+        "received": {
+          "files": 3,
+          "directories": 3,
+          "source_bytes": 65612,
+          "archive": {
+            "size": 66940,
+            "sha256": "598933e8b81621e0fa4f9c71013e4c845f8e643ce0a78e7e15f6bdc0214767df"
+          },
+          "extracted": false
+        },
+        "playback": "manually stepped; not 600ms throughput"
+      },
+      {
+        "case": "tree",
+        "run": 2,
+        "ok": true,
+        "frames": 27,
+        "decode_verify_seconds": 2.210730600003444,
+        "viewport": [
+          1920,
+          1080
+        ],
+        "qr_css_size": {
+          "x": 474,
+          "y": 54,
+          "width": 972,
+          "height": 972
+        },
+        "received": {
+          "files": 3,
+          "directories": 3,
+          "source_bytes": 65612,
+          "archive": {
+            "size": 66940,
+            "sha256": "598933e8b81621e0fa4f9c71013e4c845f8e643ce0a78e7e15f6bdc0214767df"
+          },
+          "extracted": false
+        },
+        "playback": "manually stepped; not 600ms throughput"
+      },
+      {
+        "case": "tree",
+        "run": 3,
+        "ok": true,
+        "frames": 27,
+        "decode_verify_seconds": 2.3809171999964747,
+        "viewport": [
+          1920,
+          1080
+        ],
+        "qr_css_size": {
+          "x": 474,
+          "y": 54,
+          "width": 972,
+          "height": 972
+        },
+        "received": {
+          "files": 3,
+          "directories": 3,
+          "source_bytes": 65612,
+          "archive": {
+            "size": 66940,
+            "sha256": "598933e8b81621e0fa4f9c71013e4c845f8e643ce0a78e7e15f6bdc0214767df"
+          },
+          "extracted": false
+        },
+        "playback": "manually stepped; not 600ms throughput"
+      }
+    ],
+    "ok": true
+  },
+  "tests": {
+    "suite": "python -m unittest discover -s tests -v",
+    "passed": 13,
+    "failed": 0
+  },
+  "earlier_failed_attempts": [
+    {
+      "stage": "capture inside sandbox",
+      "result": "BitBlt error; native host capture subsequently passed"
+    },
+    {
+      "stage": "legacy tree preparation inside sandbox",
+      "result": "PermissionError in system temporary directory",
+      "returncode": 1
+    },
+    {
+      "stage": "unit tests inside sandbox",
+      "result": "test setup and cleanup denied temporary directory access; rerun outside sandbox passed"
+    }
+  ],
+  "unverified": [
+    "Python 3.10 runtime",
+    "JupyterHub OS and resources",
+    "internal PyPI mirror",
+    "active HTML route on JupyterHub",
+    "real VDI throughput and color preservation"
+  ]
+}
