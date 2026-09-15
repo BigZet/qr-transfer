@@ -58,6 +58,7 @@ class Receiver:
         self.descriptor = None
         self.transfer_id = None
         self.received = set()
+        self.received_bytes = 0
         self.counters = Counter()
         self.pending = OrderedDict()
 
@@ -71,6 +72,7 @@ class Receiver:
                 "transfer_id": self.transfer_id.hex() if self.transfer_id else None,
                 "descriptor": dict(self.descriptor.__dict__) if self.descriptor else None,
                 "received_chunks": len(self.received), "pending_packets": len(self.pending),
+                "received_bytes": self.received_bytes,
                 "counters": dict(self.counters), "content_verified": self.state == State.VERIFIED,
                 "encryption_verified": False}
 
@@ -136,6 +138,7 @@ class Receiver:
         if self.record:
             self.record(raw)
         self.received.add(packet.index)
+        self.received_bytes += len(packet.payload)
         if len(self.received) == descriptor.total:
             self._assemble()
         return self._event("accepted")

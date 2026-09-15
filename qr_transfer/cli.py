@@ -1,4 +1,4 @@
-"""Iteration 01 commands operate on objects/packet streams, not screen capture."""
+"""AQR2 transfer, encrypted containers, browser preparation and screen capture."""
 from __future__ import annotations
 
 import argparse
@@ -46,7 +46,7 @@ def run_receive(args, resume=False):
 
 
 def main(argv=None):
-    parser = SafeParser(description="AQR2 offline transfer / encrypted containers; screen capture via legacy qr.py")
+    parser = SafeParser(description="AQR2 visual transfer / encrypted containers / browser player")
     sub = parser.add_subparsers(dest="command", required=True)
     prepare = sub.add_parser("prepare", help="Packetize an opaque object; does not encrypt it")
     prepare.add_argument("object", type=Path)
@@ -54,6 +54,24 @@ def main(argv=None):
     prepare.add_argument("--chunk-size", type=positive, default=2800)
     prepare.add_argument("--cycles", type=positive, default=1)
     prepare.add_argument("--descriptor", type=Path, help="Verified technical descriptor from pack (or receiver status.json)")
+    render = sub.add_parser("render", help="Build an offline browser player from an encrypted object")
+    render.add_argument("archive", type=Path)
+    render.add_argument("--descriptor", type=Path, required=True)
+    render.add_argument("--output", type=Path, required=True)
+    render.add_argument("--generator", choices=("segno", "qrcode"), default="segno")
+    render.add_argument("--metadata-every", type=positive, default=8)
+    render.add_argument("--interval-ms", type=positive, default=600)
+    render.add_argument("--external-only", action="store_true")
+    render.add_argument("--estimate", action="store_true", help="Show size budget without generating frames")
+    sub.add_parser("monitors", help="List capture monitor numbers")
+    capture = sub.add_parser("capture", help="Receive one AQR2 QR from a host monitor")
+    capture.add_argument("--state", type=Path, required=True)
+    capture.add_argument("--monitor", type=positive, default=1)
+    capture.add_argument("--fps", type=float, default=12)
+    capture.add_argument("--first-timeout", type=float, default=120)
+    capture.add_argument("--idle-timeout", type=float, default=600)
+    capture.add_argument("--total-timeout", type=float, default=0, help="0 means no overall timeout")
+    capture.add_argument("--extract-to", type=Path, help="After verification, prompt for password and extract")
     pack = sub.add_parser("pack", help="Create an encrypted 7z object; hidden password prompt")
     pack.add_argument("source", type=Path)
     pack.add_argument("--output", type=Path, required=True, help="New directory for object.7z and descriptor.json")
@@ -88,6 +106,42 @@ def main(argv=None):
     sim.add_argument("--schedule", type=Path, help="Replay a previously saved schedule")
     args = parser.parse_args(argv)
     try:
+        if args.command == "render":
+            from .player import estimate, render
+            descriptor = read_descriptor(args.descriptor)
+            budget = estimate(descriptor, metadata_every=args.metadata_every, interval_ms=args.interval_ms)
+            print(json.dumps(budget), flush=True)
+            if args.estimate:
+                return 0
+            result = render(args.archive, descriptor, args.output, generator=args.generator,
+                            metadata_every=args.metadata_every, interval_ms=args.interval_ms,
+                            standalone=not args.external_only,
+                            progress=lambda done, total: print(f"QR: {done}/{total}", file=sys.stderr, flush=True))
+            print(json.dumps(result))
+            return 0
+        if args.command == "monitors":
+            from .capture import monitors
+            print(json.dumps(monitors(), indent=2))
+            return 0
+        if args.command == "capture":
+            from .capture import receive_screen
+            def progress(value):
+                total = value["descriptor"]["total"] if value["descriptor"] else "?"
+                print(f"{value['state']}: {value['received_chunks']}/{total}; "
+                      f"{value['useful_bytes_per_second']:.0f} B/s; {value['capture_fps']:.1f} captures/s; "
+                      f"{value['counters']}", file=sys.stderr, flush=True)
+            result = receive_screen(args.state, monitor=args.monitor, fps=args.fps,
+                                    first_timeout=args.first_timeout, idle_timeout=args.idle_timeout,
+                                    total_timeout=args.total_timeout, progress=progress)
+            print(json.dumps(result))
+            if result["exit_code"] == 0 and args.extract_to:
+                unpack_code = main(["unpack", str(args.state / "object.bin"), "--descriptor", str(args.state / "status.json"),
+                                    "--output", str(args.extract_to)])
+                code = unpack_code if unpack_code in (0,130) else 3
+                receipt = {"schema":1, "stage":"complete" if code == 0 else "extraction_failed", "exit_code":code}
+                (args.state / "extraction.json").write_text(json.dumps(receipt) + "\n", encoding="utf-8")
+                return code
+            return result["exit_code"]
         if args.command in ("pack", "unpack", "inspect-container"):
             from . import container
             if args.command == "pack":
@@ -173,7 +227,7 @@ def main(argv=None):
     except KeyboardInterrupt:
         print("Cancelled.", file=sys.stderr)
         return 130
-    except (OSError, ValueError, KeyError, IndexError) as error:
+    except (OSError, ValueError, KeyError, IndexError, ImportError) as error:
         # Don't print raw bytes, metadata, source names, or exception reprs.
         reason = getattr(error, "reason", type(error).__name__)
         print(f"Failed: {reason}", file=sys.stderr)

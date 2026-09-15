@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>QR Transfer</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101827;color:#e5edf7;font:15px/1.5 system-ui,sans-serif;padding:16px}
+main{max-width:1600px;margin:auto}h1{font-size:24px;margin:0}p{margin:6px 0 12px;color:#b9c7dc}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+button,select,input{font:inherit;color:inherit;background:#26394e;border:1px solid #60738b;border-radius:6px;padding:6px 10px}
+button{cursor:pointer}button:disabled{opacity:.45;cursor:default}button:focus-visible{outline:3px solid #80ceff}input{width:92px}
+#start{background:#116e9b}#stage{position:relative;background:white;height:calc(100vh - 230px);min-height:230px;overflow:hidden;border-radius:8px}
+#stage:fullscreen{width:100vw;height:100vh;min-height:0;margin:0;border-radius:0}
+canvas{position:absolute;display:block;image-rendering:pixelated}#status{min-height:24px}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#182436;padding:12px}details{margin-top:10px}
+</style></head><body><main>
+<h1>Передача файла</h1>
+<p id="status" role="status">Загрузка… Если сообщение остаётся, откройте standalone.html отдельной вкладкой браузера.</p>
+<div class="controls">
+<button id="start" disabled>Старт</button><button id="pause" disabled>Пауза</button><button id="step" disabled>Один кадр</button><button id="reset" disabled>С начала</button>
+<label>Кадр, мс <input id="interval" type="number" min="50" max="10000" step="50" value="600"></label>
+<label>Отступ сверху <select id="top"><option>0</option><option>24</option><option selected>48</option><option>64</option><option>96</option><option>128</option></select> CSS px</label>
+<button id="fullscreen">Полный экран</button>
+</div>
+<section id="stage" aria-label="Область передачи"><canvas id="qr" aria-label="QR-код"></canvas></section>
+<p id="stats">Ожидание данных</p>
+<details><summary>Отчёт и геометрия</summary><button id="refresh">Обновить отчёт</button><button id="download">Сохранить JSON</button><pre id="report"></pre></details>
+</main>
+<script id="config" type="application/json">__CONFIG__</script>
+<script id="data" type="application/octet-stream">__DATA__</script>
+<script src="player.js"></script>
+</body></html>

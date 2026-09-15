@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qr-transfer"
-version = "0.2.0"
+version = "0.3.0"
 description = "Offline visual transfer protocol and deterministic test bench"
 requires-python = ">=3.10"
 dependencies = []
@@ -12,9 +12,14 @@ dependencies = []
 [project.optional-dependencies]
 qr = ["qrcode>=7.4,<9", "Pillow>=10,<13", "zxing-cpp>=2.2,<4"]
 container = ["py7zr==1.1.3"]
+sender = ["py7zr==1.1.3", "segno==1.6.6"]
+receiver = ["py7zr==1.1.3", "mss>=9,<11", "Pillow>=10,<13", "zxing-cpp>=2.2,<4"]
 
 [project.scripts]
 qr-transfer = "qr_transfer.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["qr_transfer*"]
+
+[tool.setuptools.package-data]
+qr_transfer = ["assets/*.html", "assets/*.js"]

@@ -1,0 +1,468 @@
+{
+  "schema": 1,
+  "date": "2026-09-16",
+  "platform": "Windows",
+  "python": "3.12.10",
+  "evidence_level": "local_headless_no_vdi",
+  "packages": {
+    "segno": "1.6.6",
+    "qrcode": "8.2",
+    "Pillow": "12.3.0",
+    "zxing-cpp": "3.1.1",
+    "mss": "10.2.0",
+    "py7zr": "1.1.3",
+    "playwright": "1.63.0",
+    "psutil": "7.2.2"
+  },
+  "fullhd": {
+    "schema": 1,
+    "evidence_level": "headless_fullhd_no_vdi",
+    "encoder_comparison": [
+      {
+        "generator": "qrcode",
+        "samples": 8,
+        "matrix_seconds_mean": 0.15351826250025624,
+        "pack_seconds_mean": 0.0026644250010576798,
+        "png_seconds_mean": 0.008034662499085243,
+        "matrix_bytes": 3917,
+        "png_bytes_last": 9654,
+        "rss_observed_bytes": 34582528,
+        "memory_note": "observed after decode, includes Pillow/ZXing; not a sampled peak"
+      },
+      {
+        "generator": "segno",
+        "samples": 8,
+        "matrix_seconds_mean": 0.11538492500221764,
+        "pack_seconds_mean": 0.0026372749989604927,
+        "png_seconds_mean": 0.007696462500462076,
+        "matrix_bytes": 3917,
+        "png_bytes_last": 9588,
+        "rss_observed_bytes": 35606528,
+        "memory_note": "observed after decode, includes Pillow/ZXing; not a sampled peak"
+      }
+    ],
+    "runs": [
+      {
+        "run": 1,
+        "ok": true,
+        "frames_decoded": 429,
+        "visual_step_seconds": 46.0691896999997,
+        "extract_seconds": 0.19800340000074357,
+        "source_bytes": 1048576,
+        "object_bytes": 1049100,
+        "sha256_source": "28083f201ab3d45988d37cced96b6c7aaf11e262d8a46f8ab62313eb31d6ccc0",
+        "note": "manual steps, not 600 ms throughput"
+      },
+      {
+        "run": 2,
+        "ok": true,
+        "frames_decoded": 429,
+        "visual_step_seconds": 45.86907369999972,
+        "extract_seconds": 0.19111499999416992,
+        "source_bytes": 1048576,
+        "object_bytes": 1049100,
+        "sha256_source": "28083f201ab3d45988d37cced96b6c7aaf11e262d8a46f8ab62313eb31d6ccc0",
+        "note": "manual steps, not 600 ms throughput"
+      },
+      {
+        "run": 3,
+        "ok": true,
+        "frames_decoded": 429,
+        "visual_step_seconds": 45.37390539999615,
+        "extract_seconds": 0.1946438000013586,
+        "source_bytes": 1048576,
+        "object_bytes": 1049100,
+        "sha256_source": "28083f201ab3d45988d37cced96b6c7aaf11e262d8a46f8ab62313eb31d6ccc0",
+        "note": "manual steps, not 600 ms throughput"
+      }
+    ],
+    "pack_seconds": 0.49959469999885187,
+    "generation": {
+      "schema": 1,
+      "generator": "segno",
+      "profile": "mono-safe",
+      "unique_frames": 376,
+      "matrix_bytes": 1472804,
+      "base64_bytes": 1963740,
+      "cycle_frames": 422,
+      "cycle_seconds": 253.2,
+      "metadata_fraction": 0.11137440758293839,
+      "external_supported": true,
+      "standalone_supported": true,
+      "prepare_seconds": 44.845823999996355,
+      "standalone_created": true,
+      "transfer_id": "a5925bf621ca38ec4e5a222a6db1c351",
+      "python_peak_rss_sampled": 44609536
+    },
+    "geometry": {
+      "schema": 1,
+      "profile": "mono-safe",
+      "evidence_level": "browser_only",
+      "ready": true,
+      "running": false,
+      "disposed": false,
+      "transfer_id": "a5925bf621ca38ec4e5a222a6db1c351",
+      "current_packet": 0,
+      "cursor": 0,
+      "cycle": 0,
+      "updates": 0,
+      "target_interval_ms": 600,
+      "actual_updates_per_second": 0,
+      "active_seconds": 0,
+      "recent_intervals_ms": [],
+      "load_ms": 95.60000000149012,
+      "unique_frames": 376,
+      "cycle_frames": 422,
+      "cycle_seconds": 253.2,
+      "visibility": "visible",
+      "fullscreen": "ok",
+      "embedded": false,
+      "geometry": {
+        "viewport_css": [
+          1920,
+          1080
+        ],
+        "canvas_backing": [
+          925,
+          925
+        ],
+        "canvas_css": [
+          925,
+          925
+        ],
+        "canvas_origin_css": [
+          497,
+          101
+        ],
+        "device_pixel_ratio": 1,
+        "module_backing_px": 5,
+        "quiet_modules": 4,
+        "top_inset_css": 48,
+        "applied_top_inset_css": 48,
+        "host_pixels": "not_measured"
+      },
+      "events": [
+        {
+          "at_ms": 112.80000000447035,
+          "type": "ready"
+        }
+      ]
+    },
+    "browser_metrics": {
+      "JSHeapUsedSize": 2901184,
+      "JSHeapTotalSize": 5627904
+    },
+    "standalone": {
+      "schema": 1,
+      "profile": "mono-safe",
+      "evidence_level": "browser_only",
+      "ready": true,
+      "running": false,
+      "disposed": false,
+      "transfer_id": "a5925bf621ca38ec4e5a222a6db1c351",
+      "current_packet": 0,
+      "cursor": 0,
+      "cycle": 0,
+      "updates": 0,
+      "target_interval_ms": 600,
+      "actual_updates_per_second": 0,
+      "active_seconds": 0,
+      "recent_intervals_ms": [],
+      "load_ms": 160.60000000149012,
+      "unique_frames": 376,
+      "cycle_frames": 422,
+      "cycle_seconds": 253.2,
+      "visibility": "visible",
+      "fullscreen": "not_tested",
+      "embedded": false,
+      "geometry": {
+        "viewport_css": [
+          1920,
+          1080
+        ],
+        "canvas_backing": [
+          740,
+          740
+        ],
+        "canvas_css": [
+          740,
+          740
+        ],
+        "canvas_origin_css": [
+          590,
+          198
+        ],
+        "device_pixel_ratio": 1,
+        "module_backing_px": 4,
+        "quiet_modules": 4,
+        "top_inset_css": 48,
+        "applied_top_inset_css": 0,
+        "host_pixels": "not_measured"
+      },
+      "events": [
+        {
+          "at_ms": 163.29999999701977,
+          "type": "ready"
+        }
+      ]
+    },
+    "timed_small_tree": {
+      "schema": 1,
+      "termination": "object_verified",
+      "exit_code": 0,
+      "elapsed_seconds": 4.452999999994063,
+      "frames_captured": 53,
+      "no_qr_frames": 0,
+      "capture_fps": 11.902088479692491,
+      "target_fps": 12,
+      "useful_bytes_per_second": 3879.6317089654244,
+      "first_timeout": 15,
+      "idle_timeout": 15,
+      "total_timeout": 30,
+      "transfer": {
+        "schema": 1,
+        "state": "object_verified",
+        "transfer_id": "0346dd54ce727853e17c0927e65809d9",
+        "descriptor": {
+          "object_size": 17276,
+          "sha256": "f72f296172792897c261a36285f31371a0ce676169eab92485279211ab308fac",
+          "chunk_size": 2800,
+          "total": 7,
+          "container": "7z-aes256",
+          "descriptor_version": 1,
+          "transport": "aqr2-repeat"
+        },
+        "received_chunks": 7,
+        "pending_packets": 0,
+        "received_bytes": 17276,
+        "counters": {
+          "metadata": 1,
+          "duplicate": 45,
+          "accepted": 7
+        },
+        "content_verified": true,
+        "encryption_verified": false
+      },
+      "evidence_level": "timed_headless_png_capture_no_vdi"
+    },
+    "ok": true
+  },
+  "final_controls": {
+    "schema": 1,
+    "evidence_level": "headless_fullhd_no_vdi",
+    "encoder_comparison": [
+      {
+        "generator": "qrcode",
+        "samples": 8,
+        "matrix_seconds_mean": 0.15457252499891183,
+        "pack_seconds_mean": 0.0029022625003563007,
+        "png_seconds_mean": 0.008741262500734592,
+        "matrix_bytes": 3917,
+        "png_bytes_last": 9654,
+        "rss_observed_bytes": 33996800,
+        "memory_note": "observed after decode, includes Pillow/ZXing; not a sampled peak"
+      },
+      {
+        "generator": "segno",
+        "samples": 8,
+        "matrix_seconds_mean": 0.11362111249854934,
+        "pack_seconds_mean": 0.002774412500912149,
+        "png_seconds_mean": 0.007578637498227181,
+        "matrix_bytes": 3917,
+        "png_bytes_last": 9588,
+        "rss_observed_bytes": 35667968,
+        "memory_note": "observed after decode, includes Pillow/ZXing; not a sampled peak"
+      }
+    ],
+    "runs": [
+      {
+        "run": 1,
+        "ok": true,
+        "frames_decoded": 15,
+        "visual_step_seconds": 1.5117887999949744,
+        "extract_seconds": 0.19852820000232896,
+        "source_bytes": 16384,
+        "object_bytes": 16844,
+        "sha256_source": "e78c6b21d1386e73037df28cd7b64c7d5f01697dd83aa54390df358a86b86dec",
+        "note": "manual steps, not 600 ms throughput"
+      }
+    ],
+    "pack_seconds": 0.3272158000036143,
+    "generation": {
+      "schema": 1,
+      "generator": "segno",
+      "profile": "mono-safe",
+      "unique_frames": 8,
+      "matrix_bytes": 31348,
+      "base64_bytes": 41800,
+      "cycle_frames": 8,
+      "cycle_seconds": 4.8,
+      "metadata_fraction": 0.125,
+      "external_supported": true,
+      "standalone_supported": true,
+      "prepare_seconds": 0.9430375999945682,
+      "standalone_created": true,
+      "transfer_id": "2a0f6bce0c2d26fd691c89e07472b20d",
+      "python_peak_rss_sampled": 44314624
+    },
+    "geometry": {
+      "schema": 1,
+      "profile": "mono-safe",
+      "evidence_level": "browser_only",
+      "ready": true,
+      "running": false,
+      "disposed": false,
+      "transfer_id": "2a0f6bce0c2d26fd691c89e07472b20d",
+      "current_packet": 0,
+      "cursor": 0,
+      "cycle": 0,
+      "updates": 0,
+      "target_interval_ms": 600,
+      "actual_updates_per_second": 0,
+      "active_seconds": 0,
+      "recent_intervals_ms": [],
+      "load_ms": 17.600000001490116,
+      "unique_frames": 8,
+      "cycle_frames": 8,
+      "cycle_seconds": 4.8,
+      "visibility": "visible",
+      "fullscreen": "ok",
+      "embedded": false,
+      "geometry": {
+        "viewport_css": [
+          1920,
+          1080
+        ],
+        "canvas_backing": [
+          925,
+          925
+        ],
+        "canvas_css": [
+          925,
+          925
+        ],
+        "canvas_origin_css": [
+          497,
+          101
+        ],
+        "device_pixel_ratio": 1,
+        "module_backing_px": 5,
+        "quiet_modules": 4,
+        "top_inset_css": 48,
+        "applied_top_inset_css": 48,
+        "host_pixels": "not_measured"
+      },
+      "events": [
+        {
+          "at_ms": 83.5,
+          "type": "ready"
+        }
+      ]
+    },
+    "browser_metrics": {
+      "JSHeapUsedSize": 2985280,
+      "JSHeapTotalSize": 5365760
+    },
+    "standalone": {
+      "schema": 1,
+      "profile": "mono-safe",
+      "evidence_level": "browser_only",
+      "ready": true,
+      "running": false,
+      "disposed": false,
+      "transfer_id": "2a0f6bce0c2d26fd691c89e07472b20d",
+      "current_packet": 0,
+      "cursor": 0,
+      "cycle": 0,
+      "updates": 0,
+      "target_interval_ms": 600,
+      "actual_updates_per_second": 0,
+      "active_seconds": 0,
+      "recent_intervals_ms": [],
+      "load_ms": 20.100000001490116,
+      "unique_frames": 8,
+      "cycle_frames": 8,
+      "cycle_seconds": 4.8,
+      "visibility": "visible",
+      "fullscreen": "not_tested",
+      "embedded": false,
+      "geometry": {
+        "viewport_css": [
+          1920,
+          1080
+        ],
+        "canvas_backing": [
+          740,
+          740
+        ],
+        "canvas_css": [
+          740,
+          740
+        ],
+        "canvas_origin_css": [
+          590,
+          198
+        ],
+        "device_pixel_ratio": 1,
+        "module_backing_px": 4,
+        "quiet_modules": 4,
+        "top_inset_css": 48,
+        "applied_top_inset_css": 0,
+        "host_pixels": "not_measured"
+      },
+      "events": [
+        {
+          "at_ms": 22.200000002980232,
+          "type": "ready"
+        }
+      ]
+    },
+    "timed_small_tree": {
+      "schema": 1,
+      "termination": "object_verified",
+      "exit_code": 0,
+      "elapsed_seconds": 4.375,
+      "frames_captured": 51,
+      "no_qr_frames": 0,
+      "capture_fps": 11.657142857142857,
+      "target_fps": 12,
+      "useful_bytes_per_second": 3948.8,
+      "first_timeout": 15,
+      "idle_timeout": 15,
+      "total_timeout": 30,
+      "transfer": {
+        "schema": 1,
+        "state": "object_verified",
+        "transfer_id": "80eb9b25b3a4ee58dfbaee05812b9a01",
+        "descriptor": {
+          "object_size": 17276,
+          "sha256": "3a75dd0d95eb5df494784bc5a3c2cf64530182906eadaaa70eca3678bf613818",
+          "chunk_size": 2800,
+          "total": 7,
+          "container": "7z-aes256",
+          "descriptor_version": 1,
+          "transport": "aqr2-repeat"
+        },
+        "received_chunks": 7,
+        "pending_packets": 0,
+        "received_bytes": 17276,
+        "counters": {
+          "metadata": 1,
+          "duplicate": 43,
+          "accepted": 7
+        },
+        "content_verified": true,
+        "encryption_verified": false
+      },
+      "evidence_level": "timed_headless_png_capture_no_vdi"
+    },
+    "ok": true
+  },
+  "check_notes": [
+    "Full HD runs manually advance frames; not VDI throughput.",
+    "Final controls include Space in fullscreen and truncated/extra/corrupt frames rejection.",
+    "Initial final-controls run failed because error details overwrote event.type; fixed and rerun passed.",
+    "Full HD generation predates final error-event, bounded fetch and keyboard refinements; final_controls uses updated assets.",
+    "Real JupyterHub and VDI acceptance pending by agreement."
+  ]
+}
