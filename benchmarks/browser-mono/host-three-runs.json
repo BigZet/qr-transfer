@@ -1,0 +1,183 @@
+{
+  "schema": 1,
+  "evidence_level": "host_capture_with_user_reported_test_completion",
+  "runs": [
+    {
+      "run": 1,
+      "capture": {
+        "schema": 1,
+        "termination": "object_verified",
+        "exit_code": 0,
+        "elapsed_seconds": 21.26600000000326,
+        "frames_captured": 139,
+        "no_qr_frames": 0,
+        "capture_fps": 6.5362550550163965,
+        "target_fps": 12,
+        "useful_bytes_per_second": 3151.509451706467,
+        "first_timeout": 120,
+        "idle_timeout": 600,
+        "total_timeout": 0,
+        "transfer": {
+          "schema": 1,
+          "state": "object_verified",
+          "transfer_id": "1564addae28597c61d2b286af8382238",
+          "descriptor": {
+            "object_size": 67020,
+            "sha256": "c7ece8dc8af00fbc55788cea1396b046acbaff956a806ab55a68a89d868325d3",
+            "chunk_size": 2800,
+            "total": 24,
+            "container": "7z-aes256",
+            "descriptor_version": 1,
+            "transport": "aqr2-repeat"
+          },
+          "received_chunks": 24,
+          "pending_packets": 0,
+          "received_bytes": 67020,
+          "counters": {
+            "metadata": 1,
+            "duplicate": 114,
+            "accepted": 24
+          },
+          "content_verified": true,
+          "encryption_verified": false
+        },
+        "monitor": 1,
+        "capture_area": {
+          "left": 0,
+          "top": 0,
+          "width": 3840,
+          "height": 2160
+        },
+        "evidence_level": "screen_capture_route_unverified"
+      },
+      "extraction": {
+        "schema": 1,
+        "stage": "complete",
+        "exit_code": 0
+      },
+      "archive_sha256_rechecked": true,
+      "restored_files": 3,
+      "restored_bytes": 65612
+    },
+    {
+      "run": 2,
+      "capture": {
+        "schema": 1,
+        "termination": "object_verified",
+        "exit_code": 0,
+        "elapsed_seconds": 14.610000000000582,
+        "frames_captured": 94,
+        "no_qr_frames": 0,
+        "capture_fps": 6.433949349760182,
+        "target_fps": 12,
+        "useful_bytes_per_second": 4587.268993839653,
+        "first_timeout": 120,
+        "idle_timeout": 600,
+        "total_timeout": 0,
+        "transfer": {
+          "schema": 1,
+          "state": "object_verified",
+          "transfer_id": "1564addae28597c61d2b286af8382238",
+          "descriptor": {
+            "object_size": 67020,
+            "sha256": "c7ece8dc8af00fbc55788cea1396b046acbaff956a806ab55a68a89d868325d3",
+            "chunk_size": 2800,
+            "total": 24,
+            "container": "7z-aes256",
+            "descriptor_version": 1,
+            "transport": "aqr2-repeat"
+          },
+          "received_chunks": 24,
+          "pending_packets": 0,
+          "received_bytes": 67020,
+          "counters": {
+            "metadata": 1,
+            "duplicate": 69,
+            "accepted": 24
+          },
+          "content_verified": true,
+          "encryption_verified": false
+        },
+        "monitor": 1,
+        "capture_area": {
+          "left": 0,
+          "top": 0,
+          "width": 3840,
+          "height": 2160
+        },
+        "evidence_level": "screen_capture_route_unverified"
+      },
+      "extraction": {
+        "schema": 1,
+        "stage": "complete",
+        "exit_code": 0
+      },
+      "archive_sha256_rechecked": true,
+      "restored_files": 3,
+      "restored_bytes": 65612
+    },
+    {
+      "run": 3,
+      "capture": {
+        "schema": 1,
+        "termination": "object_verified",
+        "exit_code": 0,
+        "elapsed_seconds": 10.796999999998661,
+        "frames_captured": 68,
+        "no_qr_frames": 0,
+        "capture_fps": 6.298045753450813,
+        "target_fps": 12,
+        "useful_bytes_per_second": 6207.279799945199,
+        "first_timeout": 120,
+        "idle_timeout": 600,
+        "total_timeout": 0,
+        "transfer": {
+          "schema": 1,
+          "state": "object_verified",
+          "transfer_id": "1564addae28597c61d2b286af8382238",
+          "descriptor": {
+            "object_size": 67020,
+            "sha256": "c7ece8dc8af00fbc55788cea1396b046acbaff956a806ab55a68a89d868325d3",
+            "chunk_size": 2800,
+            "total": 24,
+            "container": "7z-aes256",
+            "descriptor_version": 1,
+            "transport": "aqr2-repeat"
+          },
+          "received_chunks": 24,
+          "pending_packets": 0,
+          "received_bytes": 67020,
+          "counters": {
+            "metadata": 1,
+            "duplicate": 43,
+            "accepted": 24
+          },
+          "content_verified": true,
+          "encryption_verified": false
+        },
+        "monitor": 1,
+        "capture_area": {
+          "left": 0,
+          "top": 0,
+          "width": 3840,
+          "height": 2160
+        },
+        "evidence_level": "screen_capture_route_unverified"
+      },
+      "extraction": {
+        "schema": 1,
+        "stage": "complete",
+        "exit_code": 0
+      },
+      "archive_sha256_rechecked": true,
+      "restored_files": 3,
+      "restored_bytes": 65612
+    }
+  ],
+  "restored_trees_identical": true,
+  "limitations": [
+    "Capture area is 3840x2160; remote display resolution and browser scale not recorded.",
+    "Encrypted object is 67020 bytes, not a 1 MiB transport test.",
+    "Sender report, frame interval, wrong-password and late-join checks not independently confirmed."
+  ]
+}
