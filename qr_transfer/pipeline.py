@@ -14,6 +14,7 @@ class Decoded:
     raw: bytes
     slot: int = 0
     seconds: float = 0.0
+    layer: int | None = None
 
 
 def region(monitor, roi=None):

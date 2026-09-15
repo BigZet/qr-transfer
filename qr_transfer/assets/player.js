@@ -5,11 +5,14 @@
   const config = JSON.parse($("config").textContent), started = performance.now(), listeners = [], events = [];
   const base = document.createElement("canvas"); base.width = base.height = 185;
   const baseCtx = base.getContext("2d"), pixels = baseCtx.createImageData(185, 185);
+  const calibration = config.calibration_matrix ? Uint8Array.from(atob(config.calibration_matrix), c=>c.charCodeAt(0)) : null;
+  let layers = 1, calibrating = false, paintMs = 0;
+  $("visual").value = config.visual || "mono";
   const abort = new AbortController();
   let bytes = null, sequence = [], cursor = 0, ready = false, running = false, disposed = false;
   let raf = null, next = 0, updates = 0, cycles = 0, activeSince = null, activeMs = 0, lastShown = null;
   let intervals = [], modulePx = 0, loadMs = null, lastReport = 0, fullscreenResult = "not_tested";
-  let slots = 1, shown = [0], baseSequence = [], nextSlot = 0, slotUpdates = [0,0];
+  let slots = 1, shown = [[0]], baseSequence = [], nextSlot = 0, slotUpdates = [0,0];
   const gap = 8, stride = 3917, dataFrames = config.data_frames ?? config.descriptor.total;
   $("slots").value = config.slots || 1; $("mode").value = config.update_mode || "sync";
   $("interval").value = config.interval_ms;
@@ -18,16 +21,32 @@
   function interval() { return Number($("interval").value); }
   function period() { return interval() / ($("mode").value === "staggered" ? slots : 1); }
   function layoutSchedule() {
-    sequence = baseSequence.slice();
-    if (slots === 2 && sequence.length % 2) sequence.push(0);
+    layers = {mono:1, rg4:2, rgb8:3}[$("visual").value];
+    baseSequence = [0];
+    if (layers > 1) baseSequence.unshift(-1);
+    for (let i=1; i<=dataFrames; i++) {
+      baseSequence.push(i);
+      if (i % config.metadata_every === 0) { baseSequence.push(0); if(layers>1) baseSequence.push(-1); }
+    }
+    sequence = [];
+    // Service QR and transport metadata occupy an entire monochrome tile.
+    let group = [];
+    for (const id of baseSequence) {
+      if(layers>1 && id<=0) {
+        if(group.length) { while(group.length<layers) group.push(0); sequence.push(group); group=[]; }
+        sequence.push(Array(layers).fill(id));
+      } else { group.push(id); if(group.length===layers) {sequence.push(group);group=[];} }
+    }
+    if(group.length) {while(group.length<layers)group.push(0);sequence.push(group);}
+    if(slots===2 && sequence.length%2)sequence.push(Array(layers).fill(0));
     cursor = sequence.length ? cursor % sequence.length : 0;
-    shown = Array.from({length:slots}, (_,i) => sequence[(cursor+i)%sequence.length] ?? 0);
+    shown = Array.from({length:slots}, (_,i) => sequence[(cursor+i)%sequence.length] ?? [0]);
     nextSlot = 0;
   }
   function snapshot() {
     const rect = canvas.getBoundingClientRect(), seconds = (activeMs + (activeSince === null ? 0 : performance.now() - activeSince)) / 1000;
-    return {schema:1, profile:"mono-safe", transport:config.transport || "repeat", evidence_level:"browser_only", ready, running, disposed,
-      transfer_id:config.transfer_id, current_packet:shown[0] ?? null, slot_packets:shown.slice(), slots, requested_slots:Number($("slots").value),
+    return {schema:1, profile:$("visual").value, layers, calibrating, paint_ms:paintMs, transport:config.transport || "repeat", evidence_level:"browser_only", ready, running, disposed,
+      transfer_id:config.transfer_id, current_packet:shown[0]?.[0] ?? null, slot_packets:shown.map(group=>group[0]), layer_packets:shown.map(group=>group.slice()), slots, requested_slots:Number($("slots").value),
       update_mode:$("mode").value, slot_updates:slotUpdates.slice(0,slots),
       slot_updates_per_second:slotUpdates.slice(0,slots).map(n=>seconds>0?n/seconds:0), cursor, cycle:cycles, updates,
       target_interval_ms:interval(), actual_updates_per_second:seconds > 0 ? updates / seconds : 0,
@@ -49,40 +68,51 @@
   function paint() {
     if (!ready || modulePx < 1 || disposed) return;
     ctx.fillStyle = "white"; ctx.fillRect(0,0,canvas.width,canvas.height);
+    const began = performance.now();
     for (let slot=0; slot<slots; slot++) {
-    pixels.data.fill(255);
-    const offset = 12 + shown[slot] * stride;
-    for (let y = 0; y < 177; y++) for (let x = 0; x < 177; x++) {
-      const bit = y * 177 + x;
-      if (bytes[offset + (bit >> 3)] & (128 >> (bit & 7))) {
-        const pixel = ((y + 4) * 185 + x + 4) * 4;
-        pixels.data[pixel] = pixels.data[pixel + 1] = pixels.data[pixel + 2] = 0;
+      pixels.data.fill(255);
+      const ids = calibrating ? Array(layers).fill(-1) : shown[slot];
+      for (let y=0; y<177; y++) for (let x=0; x<177; x++) {
+        const bit=y*177+x, pixel=((y+4)*185+x+4)*4;
+        for(let layer=0;layer<layers;layer++) {
+          const id=ids[layer], source=id===-1?calibration:bytes;
+          const offset=id===-1?0:12+id*stride;
+          const value=source && (source[offset+(bit>>3)] & (128>>(bit&7))) ? 0 : 255;
+          if(layers===1) pixels.data[pixel]=pixels.data[pixel+1]=pixels.data[pixel+2]=value;
+          else { pixels.data[pixel+layer]=value; if(layers===2 && ids.every(v=>v===ids[0]) && ids[0]<=0) pixels.data[pixel+2]=value; }
+        }
+      }
+      baseCtx.putImageData(pixels,0,0); ctx.imageSmoothingEnabled=false;
+      const left=slot*(185*modulePx+gap);
+      ctx.drawImage(base,left,0,185*modulePx,185*modulePx);
+      if(layers>1) for(let i=0;i<(1<<layers);i++) {
+        ctx.fillStyle=`rgb(${i&1?0:255},${i&2?0:255},${layers===3 && i&4?0:255})`;
+        ctx.fillRect(left+(4+i*22)*modulePx,187*modulePx,18*modulePx,6*modulePx);
       }
     }
-    baseCtx.putImageData(pixels, 0, 0);
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(base, slot*(185*modulePx+gap), 0, 185*modulePx, 185*modulePx);
-    }
+    paintMs=performance.now()-began;
   }
+
   function resize() {
     const rect = stage.getBoundingClientRect(), dpr = devicePixelRatio;
     const inset = document.fullscreenElement === stage ? Math.ceil(Number($("top").value) * dpr) : 0;
     const width = Math.floor(rect.width * dpr), height = Math.floor(rect.height * dpr) - inset;
     const previous = slots; slots = Number($("slots").value);
-    const scale = n => Math.max(0, Math.floor(Math.min((width-gap*(n-1))/n, height)/185));
+    const scale = n => Math.max(0, Math.floor(Math.min((width-gap*(n-1))/(n*185), height/(layers>1?195:185))));
     if (slots === 2 && scale(2)<4 && scale(1)>=4) slots=1;
     modulePx = scale(slots);
     if (slots !== previous) { layoutSchedule(); event("layout", {slots}); next=performance.now()+period(); }
     const side = modulePx * 185;
     const totalWidth = side*slots+gap*(slots-1);
-    canvas.width = Math.max(1,totalWidth); canvas.height = Math.max(1,side);
-    canvas.style.width = `${totalWidth/dpr}px`; canvas.style.height = `${side/dpr}px`;
+    canvas.width = Math.max(1,totalWidth); canvas.height = Math.max(1,(layers>1?195:185)*modulePx);
+    canvas.style.width = `${totalWidth/dpr}px`; canvas.style.height = `${canvas.height/dpr}px`;
     canvas.style.left = `${(Math.ceil(rect.left * dpr) + Math.floor((width - totalWidth) / 2)) / dpr - rect.left}px`;
-    canvas.style.top = `${(Math.ceil(rect.top * dpr) + inset + Math.floor((height - side) / 2)) / dpr - rect.top}px`;
+    canvas.style.top = `${(Math.ceil(rect.top * dpr) + inset + Math.floor((height - canvas.height) / 2)) / dpr - rect.top}px`;
     if (modulePx < 1) pause();
     paint(); refresh();
   }
   function advance(countUpdate = false) {
+    calibrating = false;
     const staggered = $("mode").value === "staggered" && slots === 2;
     const count = staggered ? 1 : slots;
     const old = cursor;
@@ -112,6 +142,7 @@
   }
   function start() {
     if (!ready || disposed || running || modulePx < 1 || document.hidden) return;
+    calibrating=false; paint();
     running = true; activeSince = performance.now(); lastShown = null; next = activeSince + period();
     $("status").textContent = modulePx < 4 ? "Показ идёт. QR мелкий: увеличьте область или включите полный экран." : "Показ идёт по кругу. Остановите его после завершения приёма на хосте.";
     event("start"); raf = requestAnimationFrame(tick); refresh();
@@ -131,6 +162,8 @@
     if (!Number.isFinite(interval()) || interval() < 50 || interval() > 10000) $("interval").value = config.interval_ms;
     next = performance.now() + period(); event("interval", {value:interval()}); refresh();
   });
+  on($("visual"), "change", () => { pause(); calibrating=false; layoutSchedule(); resize(); event("visual", {value:$("visual").value}); });
+  on($("calibrate"), "click", () => { if(!ready || !calibration) return; pause(); calibrating=true; paint(); refresh(); });
   on($("slots"), "change", resize);
   on($("mode"), "change", () => { layoutSchedule(); paint(); next=performance.now()+period(); event("mode", {value:$("mode").value}); refresh(); });
   on($("top"), "change", resize); on(window, "resize", resize);
@@ -182,8 +215,6 @@
       const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
       if (view.getUint32(0) !== 0x51524d31 || view.getUint16(4) !== 177 || view.getUint16(6) !== 4 ||
           view.getUint32(8) !== dataFrames + 1 || bytes.length !== 12 + view.getUint32(8) * stride) throw Error("layout");
-      baseSequence.push(0);
-      for (let i = 1; i <= dataFrames; i++) { baseSequence.push(i); if (i % config.metadata_every === 0) baseSequence.push(0); }
       layoutSchedule();
       ready = true; loadMs = performance.now() - started;
       $("status").textContent = "Архив загружен. Запустите приёмник на хосте, затем нажмите Старт. Space — пауза, Esc — выход из полного экрана.";

@@ -32,6 +32,7 @@ def receive_frames(directory: Path, grab, decoder, *, fps=12, first_timeout=120,
     last_new = last_report = started
     reason, code = "error", 1
     slots = defaultdict(Counter)
+    layers = defaultdict(Counter)
     session_type = DurableSession
     packet_decoder = decode
     if transport == "lt":
@@ -80,7 +81,7 @@ def receive_frames(directory: Path, grab, decoder, *, fps=12, first_timeout=120,
                     if isinstance(item, bytes):
                         item = Decoded(item)
                     raw = item.raw
-                    metrics = slots[item.slot]
+                    metrics = slots[item.slot] if item.layer is None else layers[f'{item.slot}:{item.layer}']
                     metrics['symbols'] += 1
                     metrics['decode_seconds'] += item.seconds
                     try:
@@ -93,8 +94,12 @@ def receive_frames(directory: Path, grab, decoder, *, fps=12, first_timeout=120,
                         metrics['invalid'] += 1
                     else:
                         metrics['valid'] += 1
+                    previous_bytes = receiver.received_bytes
                     event = receiver.feed(raw)
+                    metrics["restored_bytes_delta"] += max(0, receiver.received_bytes-previous_bytes)
                     metrics[event.reason] += 1
+                    if event.reason == "accepted":
+                        metrics["accepted_payload_bytes"] += len(packet.payload)
                     if event.reason == 'conflict':
                         receiver.state = State.ERROR
                         reason, code = 'packet_conflict', 1
@@ -136,7 +141,7 @@ def receive_frames(directory: Path, grab, decoder, *, fps=12, first_timeout=120,
                       "useful_bytes_per_second": (receiver.received_bytes - initial_bytes) / elapsed,
                       "first_timeout": first_timeout, "idle_timeout": idle_timeout, "total_timeout": total_timeout,
                       "rss_sampled_peak":peak_rss, "resumed":resume, "initial_bytes":initial_bytes, "decode_seconds":decode_seconds,
-                      "no_progress_seconds":clock()-last_new, "slots":dict(slots),
+                      "no_progress_seconds":clock()-last_new, "slots":dict(slots), "layers":dict(layers),
                       "transfer": session.snapshot()}
             (directory / "capture.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     return result
@@ -151,13 +156,17 @@ def monitors():
 
 def receive_screen(directory: Path, *, monitor=1, fps=12, first_timeout=120,
                    idle_timeout=600, total_timeout=0, progress=None, resume=False,
-                   roi=None, pipeline=True, queue_size=2, cached=True, transport="repeat"):
+                   roi=None, pipeline=True, queue_size=2, cached=True, transport="repeat", visual="mono", color_method="palette", skip_unchanged=False):
     validate_options(monitor, fps, first_timeout, idle_timeout, total_timeout)
     available = monitors()
     if monitor > len(available):
         raise ValueError('monitor_unavailable')
     area = region(available[monitor-1], roi)
-    decoder = MultiDecoder(cached=cached)
+    if visual == "mono":
+        decoder = MultiDecoder(cached=cached)
+    else:
+        from .rgb import RGBDecoder
+        decoder = RGBDecoder(visual, method=color_method, cached=cached, skip_unchanged=skip_unchanged)
     geometry = {}
     factory = lambda: screen_source(monitor, roi, geometry)
     options = dict(fps=fps, first_timeout=first_timeout, idle_timeout=idle_timeout,
@@ -174,7 +183,8 @@ def receive_screen(directory: Path, *, monitor=1, fps=12, first_timeout=120,
     else:
         with factory() as grab:
             result = receive_frames(directory, grab, decoder, **options)
-    result.update(monitor=monitor, capture_area=area, roi=roi, geometry=geometry,
-                  decoder=dict(decoder.stats), evidence_level='screen_capture_route_unverified')
+    result.update(visual=visual, color_method=color_method if visual != "mono" else None, monitor=monitor, capture_area=area, roi=roi, geometry=geometry,
+                  decoder=dict(decoder.stats), color_calibration=getattr(decoder, 'calibration', None),
+                  evidence_level='screen_capture_route_unverified')
     (directory / 'capture.json').write_text(json.dumps(result, indent=2)+'\n', encoding='utf-8')
     return result

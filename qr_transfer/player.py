@@ -48,8 +48,10 @@ def pack_matrix(rows) -> bytes:
     return bytes(packed)
 
 
-def estimate(descriptor: TransferDescriptor, *, metadata_every=8, interval_ms=600, slots=1, update_mode="sync", transport="repeat", repair_factor=3, fec_mode="systematic"):
+def estimate(descriptor: TransferDescriptor, *, metadata_every=8, interval_ms=600, slots=1, update_mode="sync", transport="repeat", repair_factor=3, fec_mode="systematic", visual="mono"):
     descriptor.validate()
+    from .rgb import layers_for
+    layers = layers_for(visual)
     if slots not in (1,2) or update_mode not in ("sync", "staggered"):
         raise ValueError("Invalid layout")
     if type(metadata_every) is not int or not 1 <= metadata_every <= 1024 or not 50 <= interval_ms <= 10000:
@@ -62,18 +64,18 @@ def estimate(descriptor: TransferDescriptor, *, metadata_every=8, interval_ms=60
         raise ValueError("Unknown transport")
     count = data_count + 1
     size = HEADER.size + count * FRAME_BYTES
-    schedule_frames = data_count + 1 + data_count // metadata_every
-    schedule_frames += (-schedule_frames) % slots
-    return {"slots": slots, "update_mode": update_mode, "unique_frames": count, "matrix_bytes": size, "base64_bytes": ((size + 2) // 3) * 4,
+    from .rgb import schedule
+    schedule_frames = len(schedule(data_count, metadata_every, layers, slots))
+    return {"visual": visual, "layers": layers, "slots": slots, "update_mode": update_mode, "unique_frames": count, "matrix_bytes": size, "base64_bytes": ((size + 2) // 3) * 4,
             "cycle_frames": schedule_frames, "cycle_seconds": schedule_frames * interval_ms / (1000 * slots),
-            "metadata_fraction": (schedule_frames - data_count) / schedule_frames,
+            "metadata_fraction": (schedule_frames * layers - data_count) / (schedule_frames * layers),
             "external_supported": size <= (128 << 20 if transport == "lt" else MAX_MATRICES), "standalone_supported": size <= MAX_STANDALONE}
 
 
 def render(archive: Path, descriptor: TransferDescriptor, output: Path, *, generator="segno",
-           metadata_every=8, interval_ms=600, standalone=True, progress=None, slots=1, update_mode="sync", transport="repeat", repair_factor=3, fec_mode="systematic"):
+           metadata_every=8, interval_ms=600, standalone=True, progress=None, slots=1, update_mode="sync", transport="repeat", repair_factor=3, fec_mode="systematic", visual="mono"):
     verify_object(archive, descriptor)
-    budget = estimate(descriptor, metadata_every=metadata_every, interval_ms=interval_ms, slots=slots, update_mode=update_mode, transport=transport, repair_factor=repair_factor, fec_mode=fec_mode)
+    budget = estimate(descriptor, metadata_every=metadata_every, interval_ms=interval_ms, slots=slots, update_mode=update_mode, transport=transport, repair_factor=repair_factor, fec_mode=fec_mode, visual=visual)
     if not budget["external_supported"] or (standalone and not budget["standalone_supported"]):
         raise ValueError("Player size limit; use external-only or a smaller object")
     if output.absolute().is_relative_to(archive.absolute()) or archive.absolute().is_relative_to(output.absolute()):
@@ -102,7 +104,9 @@ def render(archive: Path, descriptor: TransferDescriptor, output: Path, *, gener
                     progress(index + 1, budget["unique_frames"])
         if path.stat().st_size != budget["matrix_bytes"]:
             raise ValueError("Frame count mismatch")
-        config = {"schema": 1, "profile": "mono-safe", "transfer_id": transfer.transfer_id.hex(),
+        from .rgb import SERVICE
+        calibration = base64.b64encode(pack_matrix(matrix(SERVICE, generator))).decode("ascii")
+        config = {"schema": 1, "profile": visual, "visual": visual, "calibration_matrix": calibration, "transfer_id": transfer.transfer_id.hex(),
                   "descriptor": transfer.descriptor.__dict__, "data_frames": budget["unique_frames"]-1, "transport":transport, "interval_ms": interval_ms,
                   "slots": slots, "update_mode": update_mode, "metadata_every": metadata_every, "matrix_bytes": budget["matrix_bytes"],
                   "matrix_crc32": crc & 0xffffffff}
@@ -121,7 +125,7 @@ def render(archive: Path, descriptor: TransferDescriptor, output: Path, *, gener
                 for block in iter(lambda: source.read(3 * 16384), b""):
                     target.write(base64.b64encode(block).decode("ascii"))
                 target.write(after)
-        result = {"schema": 1, "transport":transport, "repair_factor":repair_factor if transport=="lt" else None, "fec_mode":fec_mode if transport=="lt" else None, "generator": generator, "profile": "mono-safe", **budget,
+        result = {"schema": 1, "transport":transport, "repair_factor":repair_factor if transport=="lt" else None, "fec_mode":fec_mode if transport=="lt" else None, "generator": generator, "profile": visual, **budget,
                   "prepare_seconds": time.perf_counter() - started,
                   "standalone_created": standalone, "transfer_id": transfer.transfer_id.hex()}
         (output / "prepare.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")

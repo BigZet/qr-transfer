@@ -62,6 +62,7 @@ def main(argv=None):
     render.add_argument("--generator", choices=("segno", "qrcode"), default="segno")
     render.add_argument("--metadata-every", type=positive, default=8)
     render.add_argument("--interval-ms", type=positive, default=600)
+    render.add_argument("--visual", choices=("mono","rg4","rgb8"), default="mono")
     render.add_argument("--transport", choices=("repeat","lt"), default="repeat")
     render.add_argument("--repair-factor", type=int, choices=(1,2,3), default=3)
     render.add_argument("--fec-mode", choices=("systematic","repair-only"), default="systematic")
@@ -77,6 +78,9 @@ def main(argv=None):
     capture.add_argument("--first-timeout", type=float, default=120)
     capture.add_argument("--idle-timeout", type=float, default=600)
     capture.add_argument("--total-timeout", type=float, default=0, help="0 means no overall timeout")
+    capture.add_argument("--visual", choices=("mono","rg4","rgb8"), default="mono")
+    capture.add_argument("--color-method", choices=("threshold","palette"), default="palette")
+    capture.add_argument("--skip-unchanged", action="store_true", help="Skip unchanged decoded color layers")
     capture.add_argument("--transport", choices=("repeat","lt"), default="repeat")
     capture.add_argument("--resume", action="store_true", help="Resume an I04 transactional screen session")
     capture.add_argument("--roi", type=int, nargs=4, metavar=("X","Y","W","H"), help="Monitor-relative physical pixels")
@@ -122,14 +126,14 @@ def main(argv=None):
         if args.command == "render":
             from .player import estimate, render
             descriptor = read_descriptor(args.descriptor)
-            budget = estimate(descriptor, metadata_every=args.metadata_every, interval_ms=args.interval_ms, slots=args.slots, update_mode=args.update_mode, transport=args.transport, repair_factor=args.repair_factor, fec_mode=args.fec_mode)
+            budget = estimate(descriptor, metadata_every=args.metadata_every, interval_ms=args.interval_ms, slots=args.slots, update_mode=args.update_mode, transport=args.transport, repair_factor=args.repair_factor, fec_mode=args.fec_mode, visual=args.visual)
             print(json.dumps(budget), flush=True)
             if args.estimate:
                 return 0
             result = render(args.archive, descriptor, args.output, generator=args.generator,
                             metadata_every=args.metadata_every, interval_ms=args.interval_ms,
                             standalone=not args.external_only, slots=args.slots, update_mode=args.update_mode,
-                            transport=args.transport, repair_factor=args.repair_factor, fec_mode=args.fec_mode,
+                            transport=args.transport, repair_factor=args.repair_factor, fec_mode=args.fec_mode, visual=args.visual,
                             progress=lambda done, total: print(f"QR: {done}/{total}", file=sys.stderr, flush=True))
             print(json.dumps(result))
             return 0
@@ -151,7 +155,7 @@ def main(argv=None):
             result = receive_screen(args.state, monitor=args.monitor, fps=args.fps,
                                     first_timeout=args.first_timeout, idle_timeout=args.idle_timeout,
                                     total_timeout=args.total_timeout, progress=progress, resume=args.resume, roi=args.roi,
-                                    pipeline=not args.sync, queue_size=args.queue_size, cached=not args.no_cache, transport=args.transport)
+                                    pipeline=not args.sync, queue_size=args.queue_size, cached=not args.no_cache, transport=args.transport, visual=args.visual, color_method=args.color_method, skip_unchanged=args.skip_unchanged)
             print(json.dumps(result))
             if result["exit_code"] == 0 and args.extract_to:
                 unpack_code = main(["unpack", str(args.state / "object.bin"), "--descriptor", str(args.state / "status.json"),
