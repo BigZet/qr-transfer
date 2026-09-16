@@ -44,7 +44,7 @@ class PlayerTests(unittest.TestCase):
         self.assertEqual(budget["matrix_bytes"], HEADER.size + 9 * FRAME_BYTES)
         self.assertEqual(budget["cycle_seconds"], 6)
         large = TransferDescriptor(64 << 20, "0" * 64, 2800, math.ceil((64 << 20) / 2800), "7z-aes256")
-        self.assertFalse(estimate(large)["external_supported"])
+        self.assertTrue(estimate(large)["external_supported"])
         for interval in (0, 49, 10001):
             with self.assertRaises(ValueError):
                 estimate(descriptor, interval_ms=interval)
@@ -62,7 +62,7 @@ class PlayerTests(unittest.TestCase):
         self.assertNotIn("__DATA__", html)
         self.assertNotIn("synthetic-object.bin", html)
         self.assertNotIn("https://", html)
-        self.assertIn('<script src="player.js">', (out / "index.html").read_text(encoding="utf-8"))
+        self.assertNotIn('<script src="player.js">', (out / "index.html").read_text(encoding="utf-8"))
         with self.assertRaises(FileExistsError):
             render(transfer.object_path, transfer.descriptor, out)
 
@@ -74,6 +74,48 @@ class PlayerTests(unittest.TestCase):
         self.assertEqual(result["transfer"]["received_bytes"], transfer.descriptor.object_size)
         self.assertTrue(result["transfer"]["counters"]["duplicate"])
         self.assertEqual((self.root / "state/object.bin").read_bytes(), transfer.object_path.read_bytes())
+
+    @unittest.skipUnless(importlib.util.find_spec("segno"), "Install .[sender]")
+    def test_refresh_index_preserves_transfer_and_rejects_bad_frames(self):
+        from tools.refresh_player import refresh, ConfigParser
+        transfer = self.fixture()
+        out = self.root / "refresh-player"
+        generated = render(transfer.object_path, transfer.descriptor, out, standalone=False)
+        frames = (out / "frames.bin").read_bytes()
+        old = (out / "index.html").read_bytes()
+        result = refresh(out, paged=True, part_frames=8)
+        self.assertEqual(Path(result["backup"]).read_bytes(), old)
+        self.assertEqual((out / "frames.bin").read_bytes(), frames)
+        self.assertEqual(result["transfer_id"], generated["transfer_id"])
+        html = (out / "index.html").read_text(encoding="utf-8")
+        self.assertNotIn('<script src=', html)
+        parser = ConfigParser()
+        parser.feed(html)
+        self.assertEqual(json.loads("".join(parser.parts))["transfer_id"], result["transfer_id"])
+        self.assertEqual(json.loads("".join(parser.parts))["parts"]["frames_per_part"], 8)
+        (out / "frames.bin").write_bytes(frames[:-1] + bytes([frames[-1] ^ 1]))
+        with self.assertRaisesRegex(ValueError, "checksum"):
+            refresh(out)
+        self.assertEqual((out / "index.html").read_text(encoding="utf-8"), html)
+
+    def test_matrix_pages_reassemble_exactly_and_detect_corruption(self):
+        import zlib
+        from qr_transfer.player import partition_matrices
+        # Frame contents need not be valid QR to check paging integrity/layout.
+        raw = HEADER.pack(b"QRM1",177,4,19) + bytes(range(256)) * (19*FRAME_BYTES//256) + bytes(range(19*FRAME_BYTES%256))
+        path = self.root / "frames.bin"
+        path.write_bytes(raw)
+        manifest = partition_matrices(path, frames_per_part=8, expected_crc=zlib.crc32(raw)&0xffffffff)
+        parts = [(self.root/manifest["directory"]/f"{i:06d}.bin").read_bytes() for i in range(3)]
+        self.assertEqual(b"".join(parts), raw[12:])
+        self.assertEqual([len(p)//FRAME_BYTES for p in parts], [8,8,3])
+        for blob,item in zip(parts,manifest["items"]):
+            self.assertEqual(zlib.crc32(blob)&0xffffffff, item["crc32"])
+        with self.assertRaisesRegex(ValueError,"checksum"):
+            partition_matrices(path, expected_crc=0)
+        for size in (0,7,1025):
+            with self.assertRaises(ValueError):
+                partition_matrices(path, frames_per_part=size)
 
     def test_first_timeout_and_invalid_packets(self):
         result = self.run_capture([b"noise"] * 30, first_timeout=1)

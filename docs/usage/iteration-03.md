@@ -28,7 +28,8 @@ python -m qr_transfer render artifacts/i03/prepared/object.7z --descriptor artif
 ```
 
 Для большого объекта доступен `--external-only`: он создаёт `index.html`,
-`player.js`, `frames.bin` без автономной копии. Лимиты описаны в спецификации.
+`frames.bin` и папку `parts-*` без автономной копии. JavaScript встроен в HTML,
+матрицы загружаются порциями. [Новые лимиты и проверка больших файлов](paged-vdi-test.md).
 Для первых проверок используйте автономный вариант.
 
 ## 2. Открыть плеер в браузере VDI

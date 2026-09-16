@@ -1,0 +1,103 @@
+{
+  "large_load": {
+    "matrix_bytes": 134216017,
+    "seconds": 0.16677600001276005,
+    "snapshot": {
+      "schema": 1,
+      "profile": "rgb8",
+      "layers": 3,
+      "calibrating": false,
+      "paint_ms": 3.1000000089406967,
+      "transport": "lt",
+      "evidence_level": "browser_only",
+      "ready": true,
+      "running": false,
+      "disposed": false,
+      "transfer_id": "2582ad1d86f688b02f287bb4e8b3fe12",
+      "current_packet": -1,
+      "slot_packets": [
+        -1
+      ],
+      "layer_packets": [
+        [
+          -1,
+          -1,
+          -1
+        ]
+      ],
+      "slots": 1,
+      "requested_slots": 1,
+      "update_mode": "sync",
+      "slot_updates": [
+        0
+      ],
+      "slot_updates_per_second": [
+        0
+      ],
+      "cursor": 0,
+      "cycle": 0,
+      "updates": 0,
+      "target_interval_ms": 300,
+      "actual_updates_per_second": 0,
+      "active_seconds": 0,
+      "recent_intervals_ms": [],
+      "load_ms": 87.1000000089407,
+      "unique_frames": 34265,
+      "cycle_frames": 21417,
+      "cycle_seconds": 6425.1,
+      "estimated_cycle_seconds": 6425.1,
+      "remaining_cycle_seconds": 6425.1,
+      "paging": {
+        "enabled": true,
+        "loading": false,
+        "cached_parts": 1,
+        "buffer_bytes": 1006669,
+        "requests": 1,
+        "loaded_bytes": 1002752,
+        "peak_buffer_bytes": 1006669,
+        "waits": 0
+      },
+      "visibility": "visible",
+      "fullscreen": "not_tested",
+      "embedded": false,
+      "geometry": {
+        "viewport_css": [
+          1920,
+          1080
+        ],
+        "canvas_backing": [
+          740,
+          780
+        ],
+        "canvas_css": [
+          740,
+          780
+        ],
+        "canvas_origin_css": [
+          590,
+          160
+        ],
+        "device_pixel_ratio": 1,
+        "module_backing_px": 4,
+        "quiet_modules": 4,
+        "top_inset_css": 48,
+        "applied_top_inset_css": 0,
+        "host_pixels": "not_measured"
+      },
+      "events": [
+        {
+          "at_ms": 104.20000000298023,
+          "type": "ready"
+        }
+      ]
+    },
+    "scope": "Repeated matrix stress fixture; no large archive transfer"
+  },
+  "delay_crc_retry": {
+    "stalled_cursor": 2,
+    "error": "Не удалось загрузить порцию: integrity. Проверьте папку порций рядом с HTML. Старт — повторить.",
+    "recovered_cursor": 4,
+    "same_transfer_id": true
+  },
+  "missing_initial_part": "visible HTTP 404"
+}

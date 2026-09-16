@@ -68,6 +68,7 @@ def main(argv=None):
     render.add_argument("--fec-mode", choices=("systematic","repair-only"), default="systematic")
     render.add_argument("--slots", type=int, choices=(1,2), default=1)
     render.add_argument("--update-mode", choices=("sync","staggered"), default="sync")
+    render.add_argument("--part-frames", type=int, default=256, help="QR matrices per external page (8..1024)")
     render.add_argument("--external-only", action="store_true")
     render.add_argument("--estimate", action="store_true", help="Show size budget without generating frames")
     sub.add_parser("monitors", help="List capture monitor numbers")
@@ -126,14 +127,14 @@ def main(argv=None):
         if args.command == "render":
             from .player import estimate, render
             descriptor = read_descriptor(args.descriptor)
-            budget = estimate(descriptor, metadata_every=args.metadata_every, interval_ms=args.interval_ms, slots=args.slots, update_mode=args.update_mode, transport=args.transport, repair_factor=args.repair_factor, fec_mode=args.fec_mode, visual=args.visual)
+            budget = estimate(descriptor, metadata_every=args.metadata_every, interval_ms=args.interval_ms, slots=args.slots, update_mode=args.update_mode, transport=args.transport, repair_factor=args.repair_factor, fec_mode=args.fec_mode, visual=args.visual, part_frames=args.part_frames)
             print(json.dumps(budget), flush=True)
             if args.estimate:
                 return 0
             result = render(args.archive, descriptor, args.output, generator=args.generator,
                             metadata_every=args.metadata_every, interval_ms=args.interval_ms,
                             standalone=not args.external_only, slots=args.slots, update_mode=args.update_mode,
-                            transport=args.transport, repair_factor=args.repair_factor, fec_mode=args.fec_mode, visual=args.visual,
+                            transport=args.transport, repair_factor=args.repair_factor, fec_mode=args.fec_mode, visual=args.visual, part_frames=args.part_frames,
                             progress=lambda done, total: print(f"QR: {done}/{total}", file=sys.stderr, flush=True))
             print(json.dumps(result))
             return 0

@@ -1,5 +1,7 @@
 # И06: экспериментальные цветные QR
 
+[Порционная загрузка больших файлов и тест на VDI](paged-vdi-test.md).
+
 [Спецификация](../specs/rgb-qr.md) · [Локальные результаты](../reports/rgb-qr.md).
 
 4 цвета передают два пакета в одном QR, 8 цветов — три. Это число слоёв, а не
@@ -98,3 +100,24 @@ python -m qr_transfer render artifacts/i03/prepared/object.7z --descriptor artif
 ```powershell
 .\.venv-i00\Scripts\python.exe tools/check_i06_rgb.py --geometry-player artifacts/i06/local-new/player-repeat/standalone.html --output artifacts/i06/geometry-new
 ```
+
+## Если standalone работает, а index.html остаётся на загрузке
+
+В актуальном `index.html` JavaScript встроен в HTML, отдельно загружается только
+`frames.bin`. Это устраняет зависимость от внешнего `player.js`. Если ранее
+созданный плеер зависает, обновите репозиторий на VDI и из корня проекта выполните:
+
+```bash
+python tools/refresh_player.py artifacts/i06/player-large
+```
+
+Укажите свой каталог плеера. Команда проверяет размер и CRC матриц, сохраняет
+резервную копию HTML и обновляет только `index.html`. Повторная упаковка и
+генерация QR не нужны; архив, матрицы и ID передачи сохраняются. Затем откройте
+`index.html` через `/files/` и обновите страницу Ctrl+Shift+R.
+
+Страница показывает запуск JavaScript, загрузку `frames.bin` в МиБ и проверку
+целостности. При HTTP-ошибке, несовпадении размера/CRC либо отсутствии данных
+60 секунд выводится сообщение на самой странице. Если JavaScript запустился,
+но `frames.bin` недоступен, причина относится уже к маршруту/загрузке бинарного
+файла; встроенный скрипт этого ограничения не устраняет.
