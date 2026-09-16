@@ -1,0 +1,103 @@
+{
+  "scope": "local copied journal replay, no screen/VDI",
+  "initial": {
+    "schema": 1,
+    "storage_schema": "lt1",
+    "transport": "aqr2-lt-v1",
+    "state": "receiving",
+    "transfer_id": "047d4a278f0073bebe0438ad27c32e59",
+    "descriptor": {
+      "object_size": 10486765,
+      "sha256": "8abed8d8f62793b38659660b4919b2df6caae0102eb4327ae62867d98a6021cb",
+      "chunk_size": 2800,
+      "total": 3746,
+      "container": "7z-aes256",
+      "descriptor_version": 1,
+      "transport": "aqr2-repeat"
+    },
+    "fec": {
+      "object": {
+        "chunk_size": 2800,
+        "container": "7z-aes256",
+        "descriptor_version": 1,
+        "object_size": 10486765,
+        "sha256": "8abed8d8f62793b38659660b4919b2df6caae0102eb4327ae62867d98a6021cb",
+        "total": 3746,
+        "transport": "aqr2-repeat"
+      },
+      "k": 32,
+      "repair_factor": 3,
+      "mode": "systematic",
+      "scheme": "lt-code-0.3-v1",
+      "symbol_size": 2800
+    },
+    "received_chunks": 8645,
+    "committed_chunks": 8645,
+    "accepted_symbols": 8645,
+    "restored_blocks": 80,
+    "total_blocks": 119,
+    "received_bytes": 7086080,
+    "pending_packets": 0,
+    "counters": {},
+    "content_verified": false,
+    "encryption_verified": false,
+    "resume_seconds": 0.8775371999945492,
+    "state_bytes": 42722601,
+    "missing_ranges": null,
+    "progress_note": "Symbols are not independent; no exact remaining-symbol count."
+  },
+  "final": {
+    "schema": 1,
+    "storage_schema": "lt1",
+    "transport": "aqr2-lt-v1",
+    "state": "object_verified",
+    "transfer_id": "047d4a278f0073bebe0438ad27c32e59",
+    "descriptor": {
+      "object_size": 10486765,
+      "sha256": "8abed8d8f62793b38659660b4919b2df6caae0102eb4327ae62867d98a6021cb",
+      "chunk_size": 2800,
+      "total": 3746,
+      "container": "7z-aes256",
+      "descriptor_version": 1,
+      "transport": "aqr2-repeat"
+    },
+    "fec": {
+      "object": {
+        "chunk_size": 2800,
+        "container": "7z-aes256",
+        "descriptor_version": 1,
+        "object_size": 10486765,
+        "sha256": "8abed8d8f62793b38659660b4919b2df6caae0102eb4327ae62867d98a6021cb",
+        "total": 3746,
+        "transport": "aqr2-repeat"
+      },
+      "k": 32,
+      "repair_factor": 3,
+      "mode": "systematic",
+      "scheme": "lt-code-0.3-v1",
+      "symbol_size": 2800
+    },
+    "received_chunks": 14541,
+    "committed_chunks": 14541,
+    "accepted_symbols": 14541,
+    "restored_blocks": 119,
+    "total_blocks": 119,
+    "received_bytes": 10486765,
+    "pending_packets": 0,
+    "counters": {
+      "duplicate": 8646,
+      "repair_symbols": 4425,
+      "accepted": 5896,
+      "source_symbols": 1471
+    },
+    "content_verified": true,
+    "encryption_verified": false,
+    "resume_seconds": 0.8775371999945492,
+    "state_bytes": 80899331,
+    "missing_ranges": null,
+    "progress_note": "Symbols are not independent; no exact remaining-symbol count."
+  },
+  "packets_delivered": 14542,
+  "elapsed_seconds": 55.32514659999288,
+  "exact_archive": true
+}

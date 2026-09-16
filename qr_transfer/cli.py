@@ -170,6 +170,10 @@ def main(argv=None):
                 receipt = {"schema":1, "stage":"complete" if code == 0 else "extraction_failed", "exit_code":code}
                 (args.state / "extraction.json").write_text(json.dumps(receipt) + "\n", encoding="utf-8")
                 return code
+            if result.get("error"):
+                failure = result["error"]
+                types = " <- ".join(item["type"] for item in failure["chain"])
+                print(f"Receiver failed at {failure['stage']}: {types}. Details: {args.state / 'capture.json'}", file=sys.stderr)
             return result["exit_code"]
         if args.command in ("pack", "unpack", "inspect-container"):
             from . import container

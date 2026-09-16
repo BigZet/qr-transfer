@@ -13,6 +13,28 @@ from .storage import DurableSession
 from .pipeline import Decoded, LatestFrames, MultiDecoder, region, screen_source
 
 
+def error_details(error, stage):
+    """Keep exception locations/OS codes, never payloads, messages or locals."""
+    chain, seen = [], set()
+    while error is not None and id(error) not in seen and len(chain) < 4:
+        seen.add(id(error))
+        frames, tb = [], error.__traceback__
+        while tb is not None:
+            frames.append({"file": Path(tb.tb_frame.f_code.co_filename).name,
+                           "function": tb.tb_frame.f_code.co_name, "line": tb.tb_lineno})
+            tb = tb.tb_next
+        entry = {"type": type(error).__name__, "frames": frames[-12:]}
+        for name in ("errno", "winerror"):
+            value = getattr(error, name, None)
+            if type(value) is int:
+                entry[name] = value
+        if isinstance(error, ProtocolError):
+            entry["reason"] = error.reason
+        chain.append(entry)
+        error = error.__cause__ or (None if error.__suppress_context__ else error.__context__)
+    return {"stage": stage, "chain": chain}
+
+
 def validate_options(monitor, fps, first_timeout, idle_timeout, total_timeout):
     if type(monitor) is not int or monitor < 1 or not math.isfinite(fps) or not 0 < fps <= 60:
         raise ValueError("Invalid monitor/fps")
@@ -31,6 +53,7 @@ def receive_frames(directory: Path, grab, decoder, *, fps=12, first_timeout=120,
     seen = False
     last_new = last_report = started
     reason, code = "error", 1
+    failure, stage = None, "initialization"
     slots = defaultdict(Counter)
     layers = defaultdict(Counter)
     session_type = DurableSession
@@ -66,8 +89,10 @@ def receive_frames(directory: Path, grab, decoder, *, fps=12, first_timeout=120,
                     reason, code = "idle_timeout", 2
                     break
                 frame_start = now
+                stage = "capture"
                 image = grab()
                 before = clock()
+                stage = "decode"
                 decoded = decoder(image) if image is not None else []
                 decode_seconds += clock() - before
                 frames += image is not None
@@ -78,6 +103,7 @@ def receive_frames(directory: Path, grab, decoder, *, fps=12, first_timeout=120,
                 if not decoded:
                     no_qr += image is not None
                 for item in decoded:
+                    stage = "packet_validation"
                     if isinstance(item, bytes):
                         item = Decoded(item)
                     raw = item.raw
@@ -95,6 +121,7 @@ def receive_frames(directory: Path, grab, decoder, *, fps=12, first_timeout=120,
                     else:
                         metrics['valid'] += 1
                     previous_bytes = receiver.received_bytes
+                    stage = "receive"
                     event = receiver.feed(raw)
                     metrics["restored_bytes_delta"] += max(0, receiver.received_bytes-previous_bytes)
                     metrics[event.reason] += 1
@@ -115,6 +142,7 @@ def receive_frames(directory: Path, grab, decoder, *, fps=12, first_timeout=120,
                     reason, code = ("packet_conflict" if reason == "packet_conflict" else "integrity_error"), 1
                     break
                 if clock() - last_report >= 1:
+                    stage = "status"
                     if process:
                         peak_rss = max(peak_rss, process.memory_info().rss)
                     elapsed = max(.001, clock() - started)
@@ -123,6 +151,7 @@ def receive_frames(directory: Path, grab, decoder, *, fps=12, first_timeout=120,
                               "capture_fps": frames / elapsed, "useful_bytes_per_second": (receiver.received_bytes - initial_bytes) / elapsed,
                               "no_progress_seconds":clock()-last_new, "rss_sampled_peak":peak_rss}
                     if progress:
+                        stage = "progress"
                         progress(status)
                     last_report = clock()
                 if not paced:
@@ -131,11 +160,12 @@ def receive_frames(directory: Path, grab, decoder, *, fps=12, first_timeout=120,
             receiver.cancel()
             reason, code = "interrupted", 130
         except Exception as error:
+            failure = error_details(error, stage)
             receiver.state = State.ERROR
             reason, code = getattr(error, "reason", "capture_error"), 1
         finally:
             elapsed = max(.000001, clock() - started)
-            result = {"schema": 1, "termination": reason, "exit_code": code,
+            result = {"schema": 1, "termination": reason, "exit_code": code, "error": failure,
                       "elapsed_seconds": elapsed, "frames_captured": frames, "no_qr_frames": no_qr,
                       "capture_fps": frames / elapsed, "target_fps": fps,
                       "useful_bytes_per_second": (receiver.received_bytes - initial_bytes) / elapsed,
