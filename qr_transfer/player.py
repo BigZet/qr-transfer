@@ -109,8 +109,49 @@ def estimate(descriptor: TransferDescriptor, *, metadata_every=8, interval_ms=60
             "external_supported": size <= MAX_PAGED, "standalone_supported": size <= MAX_STANDALONE}
 
 
+def _atomic(path, data):
+    temporary = path.with_name(path.name + ".tmp")
+    temporary.write_bytes(data)
+    deadline = time.monotonic() + 2
+    while True:
+        try:
+            temporary.replace(path)
+            break
+        except PermissionError:
+            # Windows HTTP readers can briefly deny replacement of an open file.
+            if time.monotonic() >= deadline:
+                raise
+            time.sleep(.025)
+
+
+def _write_html(output, config, standalone=False):
+    template = (ASSETS / "player.html").read_text(encoding="utf-8")
+    config_text = json.dumps(config, separators=(",", ":")).replace("</", "<\\/")
+    template = template.replace("__CONFIG__", config_text)
+    js = (ASSETS / "player.js").read_text(encoding="utf-8")
+    (output / "player.js").write_text(js, encoding="utf-8")
+    template = template.replace('<script src="player.js"></script>', "<script>\n" + js.replace("</", "<\\/") + "\n</script>")
+    _atomic(output / "index.html", template.replace("__DATA__", "").encode("utf-8"))
+    if standalone:
+        before, after = template.split("__DATA__")
+        temporary = output / "standalone.html.tmp"
+        with temporary.open("w", encoding="utf-8") as target, (output / "frames.bin").open("rb") as source:
+            target.write(before)
+            for block in iter(lambda: source.read(3 * 16384), b""):
+                target.write(base64.b64encode(block).decode("ascii"))
+            target.write(after)
+        temporary.replace(output / "standalone.html")
+
+
 def render(archive: Path, descriptor: TransferDescriptor, output: Path, *, generator="segno",
-           metadata_every=8, interval_ms=600, standalone=True, progress=None, slots=1, update_mode="sync", transport="repeat", repair_factor=3, fec_mode="systematic", visual="mono", part_frames=256):
+           metadata_every=8, interval_ms=600, standalone=True, progress=None, slots=1, update_mode="sync", transport="repeat", repair_factor=3, fec_mode="systematic", visual="mono", part_frames=256, workers=1, live=False):
+    from .generation import worker_count, encoded_frames
+    from .rgb import SERVICE
+    selected_workers = worker_count(workers)
+    if generator not in ("segno", "qrcode"):
+        raise ValueError("Unknown QR generator")
+    if live and standalone:
+        raise ValueError("live requires external-only")
     verify_object(archive, descriptor)
     budget = estimate(descriptor, metadata_every=metadata_every, interval_ms=interval_ms, slots=slots, update_mode=update_mode, transport=transport, repair_factor=repair_factor, fec_mode=fec_mode, visual=visual, part_frames=part_frames)
     if not budget["external_supported"] or (standalone and not budget["standalone_supported"]):
@@ -125,52 +166,80 @@ def render(archive: Path, descriptor: TransferDescriptor, output: Path, *, gener
     else:
         sequence = packets(transfer, metadata_every=descriptor.total+1)
     started = time.perf_counter()
+    first_ready = None
+    generated = 0
+    published = False
+    directory = output / ("parts-" + uuid.uuid4().hex)
+    directory.mkdir()
+    items = [{"bytes":min(part_frames, budget["unique_frames"]-i*part_frames)*FRAME_BYTES, "crc32":None}
+             for i in range(budget["parts"])]
+    parts = {"schema":1, "directory":directory.name, "frames_per_part":part_frames, "items":items, "live":live}
+    def status(state):
+        _atomic(directory / "generation.json", json.dumps({"schema":1, "state":state, "generated_frames":generated,
+                "total_frames":budget["unique_frames"]}).encode("utf-8"))
     try:
+        status("running")
+        calibration = base64.b64encode(pack_matrix(matrix(SERVICE, generator))).decode("ascii")
+        config = {"schema":1, "profile":visual, "visual":visual, "calibration_matrix":calibration,
+                  "transfer_id":transfer.transfer_id.hex(), "descriptor":transfer.descriptor.__dict__,
+                  "data_frames":budget["unique_frames"]-1, "transport":transport, "interval_ms":interval_ms,
+                  "slots":slots, "update_mode":update_mode, "metadata_every":metadata_every,
+                  "matrix_bytes":budget["matrix_bytes"], "matrix_crc32":0, "parts":parts}
         path = output / "frames.bin"
         crc = 0
-        with path.open("xb") as target:
-            header = HEADER.pack(b"QRM1", SIDE, BORDER, budget["unique_frames"])
-            target.write(header)
-            crc = zlib.crc32(header)
-            # Store metadata once; schedule repeats references in JS.
-            for index, raw in enumerate(sequence):
-                frame = pack_matrix(matrix(raw, generator))
-                target.write(frame)
-                crc = zlib.crc32(frame, crc)
-                if progress and (index % 16 == 0 or index + 1 == budget["unique_frames"]):
-                    progress(index + 1, budget["unique_frames"])
-        if path.stat().st_size != budget["matrix_bytes"]:
+        part_index = 0
+        block = bytearray()
+        frames = encoded_frames(sequence, generator, selected_workers)
+        try:
+            with path.open("xb") as target:
+                header = HEADER.pack(b"QRM1", SIDE, BORDER, budget["unique_frames"])
+                target.write(header)
+                crc = zlib.crc32(header)
+                for index, frame in enumerate(frames):
+                    if index >= budget["unique_frames"]:
+                        raise ValueError("Too many frames")
+                    target.write(frame)
+                    crc = zlib.crc32(frame, crc)
+                    block.extend(frame)
+                    generated = index + 1
+                    if len(block) == items[part_index]["bytes"]:
+                        item = items[part_index]
+                        item["crc32"] = zlib.crc32(block) & 0xffffffff
+                        _atomic(directory / f"{part_index:06d}.bin", block)
+                        _atomic(directory / f"{part_index:06d}.json", json.dumps(item).encode("utf-8"))
+                        block.clear()
+                        part_index += 1
+                        status("running")
+                        if first_ready is None:
+                            first_ready = time.perf_counter()-started
+                            if live:
+                                _write_html(output, config)
+                                published = True
+                                if progress:
+                                    progress(generated, budget["unique_frames"])
+                    if progress and (index % 16 == 0 or generated == budget["unique_frames"]):
+                        progress(generated, budget["unique_frames"])
+        finally:
+            frames.close()
+        if path.stat().st_size != budget["matrix_bytes"] or block or part_index != len(items):
             raise ValueError("Frame count mismatch")
-        parts = partition_matrices(path, frames_per_part=part_frames, expected_crc=crc & 0xffffffff)
-        from .rgb import SERVICE
-        calibration = base64.b64encode(pack_matrix(matrix(SERVICE, generator))).decode("ascii")
-        config = {"schema": 1, "profile": visual, "visual": visual, "calibration_matrix": calibration, "transfer_id": transfer.transfer_id.hex(),
-                  "descriptor": transfer.descriptor.__dict__, "data_frames": budget["unique_frames"]-1, "transport":transport, "interval_ms": interval_ms,
-                  "slots": slots, "update_mode": update_mode, "metadata_every": metadata_every, "matrix_bytes": budget["matrix_bytes"],
-                  "matrix_crc32": crc & 0xffffffff, "parts": parts}
-        template = (ASSETS / "player.html").read_text(encoding="utf-8")
-        config_text = json.dumps(config, separators=(",", ":")).replace("</", "<\\/")
-        template = template.replace("__CONFIG__", config_text)
-        js = (ASSETS / "player.js").read_text(encoding="utf-8")
-        (output / "player.js").write_text(js, encoding="utf-8")
-        template = template.replace('<script src="player.js"></script>', "<script>\n" + js.replace("</", "<\\/") + "\n</script>")
-        (output / "index.html").write_text(template.replace("__DATA__", ""), encoding="utf-8")
-        if standalone:
-            # Stream base64 into HTML; don't build a second complete HTML string.
-            before, after = template.split("__DATA__")
-            after = after.replace('<script src="player.js"></script>', "<script>\n" + js.replace("</", "<\\/") + "\n</script>")
-            with (output / "standalone.html").open("w", encoding="utf-8") as target, path.open("rb") as source:
-                target.write(before)
-                for block in iter(lambda: source.read(3 * 16384), b""):
-                    target.write(base64.b64encode(block).decode("ascii"))
-                target.write(after)
-        result = {"schema": 1, "transport":transport, "repair_factor":repair_factor if transport=="lt" else None, "fec_mode":fec_mode if transport=="lt" else None, "generator": generator, "profile": visual, **budget,
-                  "prepare_seconds": time.perf_counter() - started,
-                  "standalone_created": standalone, "transfer_id": transfer.transfer_id.hex()}
+        config["matrix_crc32"] = crc & 0xffffffff
+        parts["live"] = False
+        _write_html(output, config, standalone)
+        status("complete")
+        result = {"schema":1, "transport":transport, "repair_factor":repair_factor if transport=="lt" else None,
+                  "fec_mode":fec_mode if transport=="lt" else None, "generator":generator, "workers":selected_workers,
+                  "live":live, "first_part_seconds":first_ready, "profile":visual, **budget,
+                  "prepare_seconds":time.perf_counter()-started, "standalone_created":standalone,
+                  "transfer_id":transfer.transfer_id.hex()}
         (output / "prepare.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
         return result
     except BaseException:
-        # No readiness marker on partial generation; outputs are never reused.
-        for name in ("index.html", "standalone.html"):
-            (output / name).unlink(missing_ok=True)
+        try:
+            status("failed")
+        except OSError:
+            pass
+        if not published:
+            for name in ("index.html", "standalone.html"):
+                (output / name).unlink(missing_ok=True)
         raise

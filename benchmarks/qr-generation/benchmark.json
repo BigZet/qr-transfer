@@ -1,0 +1,53 @@
+{
+  "scope": "local Windows CPU; startup included, no VDI",
+  "runs": [
+    {
+      "encoder": "segno",
+      "workers": 1,
+      "frames": 64,
+      "seconds": 7.7733325000008335,
+      "frames_per_second": 8.233277040444769,
+      "all_payloads_exact": true
+    },
+    {
+      "encoder": "segno",
+      "workers": 2,
+      "frames": 64,
+      "seconds": 4.188849199999822,
+      "frames_per_second": 15.278659351117895,
+      "all_payloads_exact": true
+    },
+    {
+      "encoder": "segno",
+      "workers": 4,
+      "frames": 64,
+      "seconds": 2.6059361999941757,
+      "frames_per_second": 24.559311927952436,
+      "all_payloads_exact": true
+    },
+    {
+      "encoder": "qrcode",
+      "workers": 1,
+      "frames": 64,
+      "seconds": 10.062330699991435,
+      "frames_per_second": 6.360355459203351,
+      "all_payloads_exact": true
+    },
+    {
+      "encoder": "qrcode",
+      "workers": 2,
+      "frames": 64,
+      "seconds": 5.403452099999413,
+      "frames_per_second": 11.844280066812649,
+      "all_payloads_exact": true
+    },
+    {
+      "encoder": "qrcode",
+      "workers": 4,
+      "frames": 64,
+      "seconds": 3.1582100999949034,
+      "frames_per_second": 20.264642938132354,
+      "all_payloads_exact": true
+    }
+  ]
+}

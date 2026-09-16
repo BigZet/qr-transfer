@@ -17,7 +17,9 @@
   const paged = !!config.parts && !$("data").textContent.trim();
   const partCache = new Map();
   let metadataMatrix = null, loadingParts = false, partError = false, allocatedPartBytes = 0, stepRequested = false, paintedKey = "";
+  let generationWaiting = false, generatedFrames = null;
   const pageStats = {requests:0, loaded_bytes:0, peak_buffer_bytes:0, waits:0};
+  const opaqueOrigin = window.origin === "null";
   function bufferBytes() { return [...partCache.values()].reduce((sum,a)=>sum+a.length,0)+(metadataMatrix?.length||0)+allocatedPartBytes; }
   function trackBuffer() { pageStats.peak_buffer_bytes=Math.max(pageStats.peak_buffer_bytes,bufferBytes()); }
   function hasMatrices(ids) { return !paged || ids.every(id=>id<0 || (id===0 && metadataMatrix) || partCache.has(Math.floor(id/config.parts.frames_per_part))); }
@@ -34,17 +36,61 @@
        !Array.isArray(p.items) || p.items.length!==Math.ceil((dataFrames+1)/p.frames_per_part) || config.matrix_bytes!==12+(dataFrames+1)*stride) throw Error("config");
     p.items.forEach((item,i)=>{
       const expected=Math.min(p.frames_per_part,dataFrames+1-i*p.frames_per_part)*stride;
-      if(item.bytes!==expected || !Number.isInteger(item.crc32) || item.crc32<0 || item.crc32>0xffffffff) throw Error("config");
+      if(item.bytes!==expected || !(p.live===true && item.crc32===null) && (!Number.isInteger(item.crc32) || item.crc32<0 || item.crc32>0xffffffff)) throw Error("config");
     });
+  }
+  async function partDescriptor(index, signal, arm) {
+    if(config.parts.items[index].crc32!==null)return config.parts.items[index];
+    const began=performance.now();
+    async function control(name) {
+      arm();
+      const response=await fetch(`${config.parts.directory}/${name}`,{signal,credentials:"same-origin",cache:"no-store"});
+      if(response.status===404){await response.body?.cancel();return null;}
+      if(!response.ok)throw Error(`HTTP ${response.status}`);
+      const reader=response.body.getReader(), chunks=[];let size=0;
+      while(true){const {value,done}=await reader.read();if(done)break;size+=value.length;
+        if(size>4096){await reader.cancel();throw Error("config");}chunks.push(value);arm();}
+      const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
+      return JSON.parse(new TextDecoder().decode(bytes));
+    }
+    try {
+      generationWaiting=true;
+      while(!signal.aborted) {
+        const item=await control(`${String(index).padStart(6,"0")}.json`);
+        if(item) {
+          if(item.bytes!==config.parts.items[index].bytes || !Number.isInteger(item.crc32) || item.crc32<0 || item.crc32>0xffffffff)throw Error("config");
+          config.parts.items[index]=item;return item;
+        }
+        const state=await control("generation.json");
+        if(state?.state==="failed")throw Error("generation_failed");
+        if(state?.state==="complete") {
+          // Publication can finish between the first 404 and this status read.
+          const last=await control(`${String(index).padStart(6,"0")}.json`);
+          if(!last)throw Error("generation_incomplete");
+          if(last.bytes!==config.parts.items[index].bytes || !Number.isInteger(last.crc32) || last.crc32<0 || last.crc32>0xffffffff)throw Error("config");
+          config.parts.items[index]=last;return last;
+        }
+        generatedFrames=Number.isInteger(state?.generated_frames)?state.generated_frames:null;
+        $("status").textContent=`Ожидание генерации порции ${index+1}. Не закрывайте терминал отправителя.`;
+        if(performance.now()-began>600000)throw Error("generation_timeout");
+        await new Promise((resolve,reject)=>{
+          const cancel=()=>{clearTimeout(timer);signal.removeEventListener("abort",cancel);reject(new DOMException("Aborted","AbortError"));};
+          const timer=setTimeout(()=>{signal.removeEventListener("abort",cancel);resolve();},1000);
+          signal.addEventListener("abort",cancel,{once:true});if(signal.aborted)cancel();
+        });
+      }
+      throw new DOMException("Aborted","AbortError");
+    } finally {generationWaiting=false;}
   }
   async function loadPart(index) {
     if(partCache.has(index)) return;
-    const item=config.parts.items[index], controller=new AbortController();
+    const controller=new AbortController();
     const cancel=()=>controller.abort(); abort.signal.addEventListener("abort",cancel,{once:true});
     if(disposed) {abort.signal.removeEventListener("abort",cancel);return;}
     let timer=null;
     const arm=()=>{clearTimeout(timer);timer=setTimeout(cancel,60000);};
     try {
+      const item=await partDescriptor(index,controller.signal,arm);
       arm();pageStats.requests++;
       $("status").textContent=`Загрузка порции ${index+1}/${config.parts.items.length}…`;
       const response=await fetch(`${config.parts.directory}/${String(index).padStart(6,"0")}.bin`,{signal:controller.signal,credentials:"same-origin",cache:"no-store"});
@@ -89,7 +135,7 @@
     }).catch(error=>{
       loadingParts=false;if(disposed)return;
       pause();partError=true;
-      $("status").textContent=`Не удалось загрузить порцию: ${error.name==="AbortError"?"нет данных 60 секунд":error.message}. Проверьте папку порций рядом с HTML. Старт — повторить.`;
+      $("status").textContent=`Не удалось загрузить порцию: ${error.name==="AbortError"?"нет данных 60 секунд":({generation_failed:"Генерация остановилась с ошибкой — проверьте терминал",generation_incomplete:"Генерация завершена, но порция отсутствует",generation_timeout:"Порция не готова за 10 минут — проверьте терминал"}[error.message]||error.message)}. Проверьте папку порций рядом с HTML. Старт — повторить.`;
       event("part_failed",{error_name:error.name});refresh();
     });
   }
@@ -144,8 +190,9 @@
       cycle_frames:sequence.length, cycle_seconds:sequence.length * interval() / (1000 * slots),
       estimated_cycle_seconds:sequence.length * Math.max(period(), intervals.length>=3?intervals.reduce((a,b)=>a+b,0)/intervals.length:period()) / (1000 * ($("mode").value==="staggered"?1:slots)),
       remaining_cycle_seconds:(sequence.length-cursor) * Math.max(period(), intervals.length>=3?intervals.reduce((a,b)=>a+b,0)/intervals.length:period()) / (1000 * ($("mode").value==="staggered"?1:slots)),
-      paging:{enabled:paged, loading:loadingParts, cached_parts:partCache.size, buffer_bytes:bufferBytes(), ...pageStats},
+      paging:{enabled:paged, loading:loadingParts, cached_parts:partCache.size, buffer_bytes:bufferBytes(), generation_waiting:generationWaiting, generated_frames:generatedFrames, ...pageStats},
       visibility:document.visibilityState, fullscreen:fullscreenResult, embedded:window.self !== window.top,
+      opaque_origin:opaqueOrigin,
       geometry:{viewport_css:[innerWidth,innerHeight], canvas_backing:[canvas.width,canvas.height],
         canvas_css:[rect.width,rect.height], canvas_origin_css:[rect.x,rect.y], device_pixel_ratio:devicePixelRatio,
         module_backing_px:modulePx, quiet_modules:4, top_inset_css:Number($("top").value),
@@ -155,7 +202,7 @@
   function refresh() {
     const s = snapshot();
     $("stats").textContent = ready ? `${running ? "Показ" : "Пауза"} · кадр ${cursor + 1}/${sequence.length} · цикл ${cycles + 1} · ${s.actual_updates_per_second.toFixed(2)} обновл./с · ${modulePx} px/модуль · ${slots} QR` : "Ожидание данных";
-    $("eta").textContent = ready ? `Ориентир передачи: ${duration(s.estimated_cycle_seconds)} на полный цикл · до конца цикла ≈ ${duration(s.remaining_cycle_seconds)}${running?"":" (без времени паузы)"}. При потерях нужны повторы; LT может завершиться раньше.` : "Оценка времени появится после загрузки первой порции.";
+    $("eta").textContent = ready ? `Ориентир передачи: ${duration(s.estimated_cycle_seconds)} на полный цикл · до конца цикла ≈ ${duration(s.remaining_cycle_seconds)}${running?"":" (без времени паузы)"}. При потерях нужны повторы; LT может завершиться раньше.${generationWaiting?" Ожидание генерации следующей порции.":""}` : "Оценка времени появится после загрузки первой порции.";
     $("report").textContent = JSON.stringify(s, null, 2);
     for (const name of ["start", "pause", "step", "reset"]) $(name).disabled = !ready || modulePx < 1;
   }
@@ -294,6 +341,7 @@
           !Number.isInteger(config.metadata_every) || config.metadata_every < 1 || config.metadata_every > 1024 ||
           config.interval_ms < 50 || config.interval_ms > 10000 || !Number.isInteger(config.matrix_bytes) || config.matrix_bytes < 12 || config.matrix_bytes > (paged ? 268435456 : (config.transport === "lt" ? 134217728 : 33554432))) throw Error("config");
       const embedded = $("data").textContent.trim();
+      if (!embedded && opaqueOrigin) throw Error("sandbox");
       if (paged) {
         validateParts();layoutSchedule();
         await ensureParts([0,...shown.flat()]);
@@ -336,9 +384,9 @@
     } catch (error) {
       if (disposed) return;
       const reason = error.name === "AbortError" ? "Нет данных в течение 60 секунд" :
-        (/^HTTP \d+$/.test(error.message) ? error.message : ({length:"Неверный размер файла матриц", integrity:"Не совпала контрольная сумма", layout:"Неверный формат матриц", config:"Некорректные параметры плеера"}[error.message] || "Браузер не разрешил загрузку или произошла сетевая ошибка"));
-      $("status").textContent = `Не удалось загрузить кадры: ${reason}. Откройте index.html через /files/ отдельной вкладкой; Файлы матриц и папка порций должны лежать рядом с HTML.`;
-      event("load_failed", {error_name:error.name}); refresh();
+        (/^HTTP \d+$/.test(error.message) ? error.message : ({sandbox:"Страница изолирована браузером (origin=null). Загрузка соседних порций недоступна. Запустите tools/serve_player.py и откройте выведенный адрес /proxy/. Для полностью встроенных данных используйте standalone.html", length:"Неверный размер файла матриц", integrity:"Не совпала контрольная сумма", layout:"Неверный формат матриц", config:"Некорректные параметры плеера"}[error.message] || "Браузер не разрешил загрузку или произошла сетевая ошибка"));
+      $("status").textContent = `Не удалось загрузить кадры: ${reason}. Файлы матриц и папка порций должны лежать рядом с HTML. При блокировке /files/ используйте маршрут /proxy/.`;
+      event("load_failed", {error_name:error.name, error_code:/^[a-z_]+$/.test(error.message)?error.message:null}); refresh();
     } finally { clearTimeout(timeout); }
   }
   resize(); load();

@@ -1,0 +1,234 @@
+[
+  {
+    "case": "failed",
+    "descriptor_attempts": 1,
+    "snapshot": {
+      "schema": 1,
+      "profile": "rgb8",
+      "layers": 3,
+      "calibrating": false,
+      "paint_ms": 5.299999997019768,
+      "transport": "lt",
+      "evidence_level": "browser_only",
+      "ready": true,
+      "running": false,
+      "disposed": false,
+      "transfer_id": "da1a39d1a21be74485bd7e783a5a0f21",
+      "current_packet": 1,
+      "slot_packets": [
+        1,
+        4
+      ],
+      "layer_packets": [
+        [
+          1,
+          2,
+          3
+        ],
+        [
+          4,
+          5,
+          6
+        ]
+      ],
+      "slots": 2,
+      "requested_slots": 2,
+      "update_mode": "sync",
+      "slot_updates": [
+        1,
+        1
+      ],
+      "slot_updates_per_second": [
+        6.697923643804162,
+        6.697923643804162
+      ],
+      "cursor": 2,
+      "cycle": 0,
+      "updates": 1,
+      "target_interval_ms": 100,
+      "actual_updates_per_second": 6.697923643804162,
+      "active_seconds": 0.14929999999701976,
+      "recent_intervals_ms": [],
+      "load_ms": 45.099999994039536,
+      "unique_frames": 97,
+      "cycle_frames": 62,
+      "cycle_seconds": 3.1,
+      "estimated_cycle_seconds": 3.1,
+      "remaining_cycle_seconds": 3,
+      "paging": {
+        "enabled": true,
+        "loading": false,
+        "cached_parts": 1,
+        "buffer_bytes": 35253,
+        "generation_waiting": false,
+        "generated_frames": null,
+        "requests": 1,
+        "loaded_bytes": 31336,
+        "peak_buffer_bytes": 35253,
+        "waits": 1
+      },
+      "visibility": "visible",
+      "fullscreen": "not_tested",
+      "embedded": false,
+      "geometry": {
+        "viewport_css": [
+          1280,
+          720
+        ],
+        "canvas_backing": [
+          748,
+          390
+        ],
+        "canvas_css": [
+          748,
+          390
+        ],
+        "canvas_origin_css": [
+          266,
+          219
+        ],
+        "device_pixel_ratio": 1,
+        "module_backing_px": 2,
+        "quiet_modules": 4,
+        "top_inset_css": 48,
+        "applied_top_inset_css": 0,
+        "host_pixels": "not_measured"
+      },
+      "events": [
+        {
+          "at_ms": 18.900000005960464,
+          "type": "layout",
+          "slots": 2
+        },
+        {
+          "at_ms": 113.5,
+          "type": "ready"
+        },
+        {
+          "at_ms": 125.79999999701977,
+          "type": "start"
+        },
+        {
+          "at_ms": 275.09999999403954,
+          "type": "part_failed",
+          "error_name": "Error"
+        }
+      ]
+    }
+  },
+  {
+    "case": "complete-race",
+    "descriptor_attempts": 2,
+    "snapshot": {
+      "schema": 1,
+      "profile": "rgb8",
+      "layers": 3,
+      "calibrating": false,
+      "paint_ms": 2.1000000089406967,
+      "transport": "lt",
+      "evidence_level": "browser_only",
+      "ready": true,
+      "running": true,
+      "disposed": false,
+      "transfer_id": "da1a39d1a21be74485bd7e783a5a0f21",
+      "current_packet": -1,
+      "slot_packets": [
+        -1,
+        9
+      ],
+      "layer_packets": [
+        [
+          -1,
+          -1,
+          -1
+        ],
+        [
+          9,
+          10,
+          11
+        ]
+      ],
+      "slots": 2,
+      "requested_slots": 2,
+      "update_mode": "sync",
+      "slot_updates": [
+        3,
+        3
+      ],
+      "slot_updates_per_second": [
+        8.583690987124465,
+        8.583690987124465
+      ],
+      "cursor": 6,
+      "cycle": 0,
+      "updates": 3,
+      "target_interval_ms": 100,
+      "actual_updates_per_second": 8.583690987124465,
+      "active_seconds": 0.3495,
+      "recent_intervals_ms": [
+        116.6,
+        116.80000000000001
+      ],
+      "load_ms": 32.099999994039536,
+      "unique_frames": 97,
+      "cycle_frames": 62,
+      "cycle_seconds": 3.1,
+      "estimated_cycle_seconds": 3.1,
+      "remaining_cycle_seconds": 2.8,
+      "paging": {
+        "enabled": true,
+        "loading": true,
+        "cached_parts": 2,
+        "buffer_bytes": 66589,
+        "generation_waiting": false,
+        "generated_frames": null,
+        "requests": 3,
+        "loaded_bytes": 62672,
+        "peak_buffer_bytes": 66589,
+        "waits": 2
+      },
+      "visibility": "visible",
+      "fullscreen": "not_tested",
+      "embedded": false,
+      "geometry": {
+        "viewport_css": [
+          1280,
+          720
+        ],
+        "canvas_backing": [
+          748,
+          390
+        ],
+        "canvas_css": [
+          748,
+          390
+        ],
+        "canvas_origin_css": [
+          266,
+          219
+        ],
+        "device_pixel_ratio": 1,
+        "module_backing_px": 2,
+        "quiet_modules": 4,
+        "top_inset_css": 48,
+        "applied_top_inset_css": 0,
+        "host_pixels": "not_measured"
+      },
+      "events": [
+        {
+          "at_ms": 16.69999998807907,
+          "type": "layout",
+          "slots": 2
+        },
+        {
+          "at_ms": 39.3999999910593,
+          "type": "ready"
+        },
+        {
+          "at_ms": 58.8999999910593,
+          "type": "start"
+        }
+      ]
+    }
+  }
+]
