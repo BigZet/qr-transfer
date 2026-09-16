@@ -56,7 +56,7 @@ CLI использует нейтральные `object.7z` и `descriptor.json`
 `FILTER_CRYPTO_AES256_SHA256`; `header_encryption=True`. Название max не обещает
 глобально минимальный архив для любого содержимого. Выбор сделан для ограниченного
 бюджета памяти, а не для максимального словаря. Замеры приведены в
-[отчёте И02](../reports/container.md). Бюджет реального JupyterHub ещё требуется проверить.
+[отчёте И02](https://github.com/BigZet/qr-transfer/blob/discover/docs/reports/container.md). Бюджет реального JupyterHub ещё требуется проверить.
 
 ## Подготовка и согласованность
 
